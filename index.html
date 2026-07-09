@@ -3,628 +3,424 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Sora マーカーなしAR</title>
+  <title>Sora Quest VR</title>
+
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      height: 100%;
       overflow: hidden;
-      background: #000;
-      color: #fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #000;
     }
 
     #ui {
       position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    #card {
-      width: min(440px, 100%);
-      background: rgba(0, 0, 0, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 24px;
-      padding: 22px 18px;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
-      pointer-events: auto;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 25px;
-    }
-
-    p {
-      margin: 0 0 14px;
-      font-size: 14px;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.82);
-    }
-
-    button {
-      width: 100%;
-      border: none;
-      border-radius: 999px;
-      padding: 15px 18px;
-      margin-top: 10px;
-      font-size: 17px;
-      font-weight: 800;
-      color: #fff;
-      background: linear-gradient(135deg, #34a7ff, #7c5cff);
-      box-shadow: 0 10px 26px rgba(67, 147, 255, 0.42);
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
-
-    #fakeBtn {
-      background: linear-gradient(135deg, #ffb02e, #ff5c7c);
-      display: none;
-    }
-
-    #status {
-      position: fixed;
       left: 10px;
       right: 10px;
       top: 10px;
-      z-index: 30;
-      background: rgba(0,0,0,0.72);
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.62);
+      color: #fff;
       border-radius: 14px;
       padding: 10px 12px;
       font-size: 13px;
-      line-height: 1.55;
-      display: none;
+      line-height: 1.5;
       pointer-events: none;
     }
 
-    #status strong {
+    #ui strong {
       color: #ffe066;
     }
 
-    #hint {
+    #controls {
       position: fixed;
       left: 10px;
       right: 10px;
       bottom: 10px;
-      z-index: 30;
-      background: rgba(255,255,255,0.92);
-      color: #111;
-      border-radius: 14px;
-      padding: 10px 12px;
-      font-size: 13px;
-      line-height: 1.55;
-      text-align: center;
-      display: none;
-      pointer-events: none;
-    }
-
-    #fakeCamera {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      background: #000;
-      display: none;
-      z-index: 1;
-    }
-
-    #fakeLayer {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      display: none;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
       pointer-events: auto;
     }
 
-    .fakeTreasure {
-      position: absolute;
-      left: 50%;
-      top: 55%;
-      transform: translate(-50%, -50%);
-      font-size: 78px;
-      filter: drop-shadow(0 0 18px rgba(255,220,80,0.95));
-      animation: float 1.8s ease-in-out infinite;
-      user-select: none;
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: white;
+      background: rgba(60, 140, 255, 0.86);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      touch-action: manipulation;
     }
 
-    @keyframes float {
-      0%, 100% {
-        transform: translate(-50%, -50%) translateY(0) scale(1);
-      }
-      50% {
-        transform: translate(-50%, -50%) translateY(-18px) scale(1.08);
-      }
+    button:active {
+      transform: scale(0.96);
+      background: rgba(255, 174, 54, 0.95);
     }
 
-    canvas {
-      display: block;
+    #jumpBtn {
+      background: rgba(255, 174, 54, 0.88);
     }
 
-    .hidden {
-      display: none !important;
+    #openBtn {
+      background: rgba(124, 92, 255, 0.88);
     }
   </style>
 </head>
 
 <body>
-  <video id="fakeCamera" autoplay playsinline muted></video>
-  <div id="fakeLayer"></div>
-
   <div id="ui">
-    <div id="card">
-      <h1>Sora マーカーなしAR</h1>
-      <p>
-        Hiroマーカーなしで、床を認識して宝箱を置くARです。<br>
-        対応端末では「AR開始」が使えます。
-      </p>
-
-      <button id="startBtn" disabled>対応確認中...</button>
-      <button id="fakeBtn">非対応端末用：AR風で試す</button>
-
-      <p id="supportText" style="margin-top:14px;">
-        WebXR対応状況を確認しています。
-      </p>
-    </div>
+    <strong>Sora Quest VR</strong><br>
+    PC：WASDで移動、マウスで視点変更。<br>
+    スマホ：画面ドラッグで視点変更、下ボタンで移動。宝箱に近づいて「開ける」。
   </div>
 
-  <div id="status"></div>
-
-  <div id="hint">
-    スマホをゆっくり床に向けて動かしてください。<br>
-    白い輪が出たら、画面をタップして宝箱を置けます。
+  <div id="controls">
+    <button id="leftBtn">左</button>
+    <button id="forwardBtn">前へ</button>
+    <button id="rightBtn">右</button>
+    <button id="backBtn">後ろ</button>
+    <button id="jumpBtn">ジャンプ</button>
+    <button id="openBtn">開ける</button>
   </div>
 
-  <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js";
+  <a-scene
+    background="color: #87CEEB"
+    renderer="antialias: true; colorManagement: true;"
+    vr-mode-ui="enabled: true"
+  >
 
-    const ui = document.getElementById("ui");
-    const card = document.getElementById("card");
-    const startBtn = document.getElementById("startBtn");
-    const fakeBtn = document.getElementById("fakeBtn");
-    const supportText = document.getElementById("supportText");
-    const statusBox = document.getElementById("status");
-    const hint = document.getElementById("hint");
-    const fakeCamera = document.getElementById("fakeCamera");
-    const fakeLayer = document.getElementById("fakeLayer");
+    <!-- 空 -->
+    <a-sky color="#8fd3ff"></a-sky>
 
-    let scene, camera, renderer;
-    let controller;
-    let reticle;
-    let hitTestSource = null;
-    let hitTestSourceRequested = false;
-    let currentSession = null;
-    let placedCount = 0;
-    let lastStatus = "";
+    <!-- 太陽っぽい光 -->
+    <a-entity light="type: ambient; intensity: 0.65; color: #ffffff"></a-entity>
+    <a-entity light="type: directional; intensity: 1.2; color: #fff4cc" position="3 7 4"></a-entity>
 
-    initThree();
-    checkWebXRSupport();
+    <!-- プレイヤー -->
+    <a-entity id="player" position="0 1.6 5">
+      <a-entity
+        id="camera"
+        camera
+        look-controls="touchEnabled: true; mouseEnabled: true; pointerLockEnabled: false"
+        wasd-controls="acceleration: 35"
+      >
+        <a-cursor
+          color="#ffffff"
+          fuse="false"
+          raycaster="objects: .clickable"
+        ></a-cursor>
+      </a-entity>
+    </a-entity>
 
-    function setStatus(html) {
-      if (lastStatus === html) return;
-      lastStatus = html;
-      statusBox.style.display = "block";
-      statusBox.innerHTML = html;
+    <!-- 地面 -->
+    <a-plane
+      position="0 0 0"
+      rotation="-90 0 0"
+      width="80"
+      height="80"
+      color="#5fbf6f"
+      roughness="1"
+    ></a-plane>
+
+    <!-- 道 -->
+    <a-plane
+      position="0 0.01 0"
+      rotation="-90 0 0"
+      width="5"
+      height="40"
+      color="#d6b46a"
+    ></a-plane>
+
+    <!-- 森の木たち -->
+    <a-entity id="forest">
+      <a-cylinder position="-5 1 -2" radius="0.25" height="2" color="#7a4a28"></a-cylinder>
+      <a-cone position="-5 2.5 -2" radius-bottom="1.2" height="2.4" color="#246b38"></a-cone>
+
+      <a-cylinder position="5 1 -1" radius="0.25" height="2" color="#7a4a28"></a-cylinder>
+      <a-cone position="5 2.5 -1" radius-bottom="1.2" height="2.4" color="#246b38"></a-cone>
+
+      <a-cylinder position="-6 1 -8" radius="0.25" height="2" color="#7a4a28"></a-cylinder>
+      <a-cone position="-6 2.5 -8" radius-bottom="1.3" height="2.5" color="#1f5f34"></a-cone>
+
+      <a-cylinder position="6 1 -9" radius="0.25" height="2" color="#7a4a28"></a-cylinder>
+      <a-cone position="6 2.5 -9" radius-bottom="1.3" height="2.5" color="#1f5f34"></a-cone>
+
+      <a-cylinder position="-4 1 -14" radius="0.25" height="2" color="#7a4a28"></a-cylinder>
+      <a-cone position="-4 2.5 -14" radius-bottom="1.4" height="2.6" color="#2d7a44"></a-cone>
+
+      <a-cylinder position="4 1 -15" radius="0.25" height="2" color="#7a4a28"></a-cylinder>
+      <a-cone position="4 2.5 -15" radius-bottom="1.4" height="2.6" color="#2d7a44"></a-cone>
+    </a-entity>
+
+    <!-- ゲート -->
+    <a-torus
+      position="0 2 -10"
+      rotation="0 0 0"
+      radius="1.7"
+      radius-tubular="0.08"
+      color="#5ad7ff"
+      animation="property: rotation; to: 0 360 0; loop: true; dur: 5000; easing: linear;"
+    ></a-torus>
+
+    <a-text
+      value="SORA QUEST"
+      position="0 3.8 -10"
+      align="center"
+      color="#ffffff"
+      width="5"
+    ></a-text>
+
+    <!-- 宝箱 -->
+    <a-entity id="treasure" class="clickable" position="0 0 -16">
+      <a-box
+        id="chestBase"
+        position="0 0.35 0"
+        scale="1.6 0.7 1"
+        color="#8B4513"
+      ></a-box>
+
+      <a-box
+        id="chestLid"
+        position="0 0.85 0"
+        scale="1.7 0.35 1.05"
+        color="#B06A2B"
+      ></a-box>
+
+      <a-box
+        position="0 0.98 -0.55"
+        scale="1.85 0.12 0.08"
+        color="#FFD75A"
+      ></a-box>
+
+      <a-box
+        position="0 0.45 -0.55"
+        scale="1.85 0.12 0.08"
+        color="#FFD75A"
+      ></a-box>
+
+      <a-box
+        position="0 0.62 -0.62"
+        scale="0.25 0.32 0.08"
+        color="#222222"
+      ></a-box>
+
+      <a-sphere
+        id="treasureStar"
+        position="0 1.55 0"
+        radius="0.2"
+        color="#fff176"
+        visible="false"
+        animation="property: position; from: 0 1.45 0; to: 0 2.1 0; dir: alternate; loop: true; dur: 900; easing: easeInOutSine;"
+      ></a-sphere>
+
+      <a-ring
+        id="treasureRing"
+        position="0 1.55 0"
+        rotation="90 0 0"
+        radius-inner="0.28"
+        radius-outer="0.34"
+        color="#ffffff"
+        visible="false"
+        animation="property: rotation; to: 90 0 360; loop: true; dur: 1400; easing: linear;"
+      ></a-ring>
+    </a-entity>
+
+    <!-- 説明看板 -->
+    <a-entity position="0 1.2 2">
+      <a-plane width="4.5" height="1.4" color="#222" opacity="0.78"></a-plane>
+      <a-text
+        value="Move forward and find the treasure!"
+        position="0 0.18 0.02"
+        align="center"
+        color="#ffffff"
+        width="4"
+      ></a-text>
+      <a-text
+        value="宝箱に近づいて「開ける」"
+        position="0 -0.28 0.02"
+        align="center"
+        color="#ffe066"
+        width="4"
+      ></a-text>
+    </a-entity>
+
+  </a-scene>
+
+  <script>
+    const player = document.getElementById("player");
+    const camera = document.getElementById("camera");
+    const treasure = document.getElementById("treasure");
+    const chestLid = document.getElementById("chestLid");
+    const treasureStar = document.getElementById("treasureStar");
+    const treasureRing = document.getElementById("treasureRing");
+
+    const forwardBtn = document.getElementById("forwardBtn");
+    const backBtn = document.getElementById("backBtn");
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
+    const jumpBtn = document.getElementById("jumpBtn");
+    const openBtn = document.getElementById("openBtn");
+
+    let isOpen = false;
+    let moving = {
+      forward: false,
+      back: false,
+      left: false,
+      right: false
+    };
+
+    function getYaw() {
+      const rot = camera.getAttribute("rotation");
+      return THREE.MathUtils.degToRad(rot.y);
     }
 
-    function initThree() {
-      scene = new THREE.Scene();
+    function movePlayer(direction, amount) {
+      const pos = player.getAttribute("position");
+      const yaw = getYaw();
 
-      camera = new THREE.PerspectiveCamera(
-        70,
-        window.innerWidth / window.innerHeight,
-        0.01,
-        30
-      );
+      let dx = 0;
+      let dz = 0;
 
-      renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true
+      if (direction === "forward") {
+        dx = -Math.sin(yaw) * amount;
+        dz = -Math.cos(yaw) * amount;
+      }
+
+      if (direction === "back") {
+        dx = Math.sin(yaw) * amount;
+        dz = Math.cos(yaw) * amount;
+      }
+
+      if (direction === "left") {
+        dx = -Math.cos(yaw) * amount;
+        dz = Math.sin(yaw) * amount;
+      }
+
+      if (direction === "right") {
+        dx = Math.cos(yaw) * amount;
+        dz = -Math.sin(yaw) * amount;
+      }
+
+      player.setAttribute("position", {
+        x: pos.x + dx,
+        y: pos.y,
+        z: pos.z + dz
       });
-
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.xr.enabled = true;
-
-      document.body.appendChild(renderer.domElement);
-
-      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2.2);
-      scene.add(ambientLight);
-
-      const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
-      dirLight.position.set(2, 4, 3);
-      scene.add(dirLight);
-
-      const ringGeometry = new THREE.RingGeometry(0.16, 0.22, 48);
-      ringGeometry.rotateX(-Math.PI / 2);
-
-      const ringMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.9
-      });
-
-      reticle = new THREE.Mesh(ringGeometry, ringMaterial);
-      reticle.matrixAutoUpdate = false;
-      reticle.visible = false;
-      scene.add(reticle);
-
-      controller = renderer.xr.getController(0);
-      controller.addEventListener("select", placeTreasure);
-      scene.add(controller);
-
-      window.addEventListener("resize", onWindowResize);
     }
 
-    async function checkWebXRSupport() {
-      if (!window.isSecureContext) {
-        startBtn.disabled = true;
-        startBtn.textContent = "HTTPSで開いてください";
-        supportText.innerHTML =
-          "このARは https:// のページでないと動きません。GitHub PagesのURLで開いてください。";
-        fakeBtn.style.display = "block";
+    function distanceToTreasure() {
+      const p = player.getAttribute("position");
+      const t = treasure.getAttribute("position");
+
+      const dx = p.x - t.x;
+      const dz = p.z - t.z;
+
+      return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    function openTreasure() {
+      const dist = distanceToTreasure();
+
+      if (dist > 4) {
+        alert("宝箱が遠い！もう少し近づいてください。");
         return;
       }
 
-      if (!navigator.xr) {
-        startBtn.disabled = true;
-        startBtn.textContent = "WebXR非対応";
-        supportText.innerHTML =
-          "このブラウザは WebXR に対応していません。iPhone Safariでは本物のマーカーなしARが動かないことが多いです。";
-        fakeBtn.style.display = "block";
+      if (isOpen) {
+        alert("もう宝箱は開いています！");
         return;
       }
 
-      try {
-        const supported = await navigator.xr.isSessionSupported("immersive-ar");
+      isOpen = true;
 
-        if (supported) {
-          startBtn.disabled = false;
-          startBtn.textContent = "マーカーなしAR開始";
-          supportText.innerHTML =
-            "この端末は immersive-ar に対応しています。床認識ARを開始できます。";
-        } else {
-          startBtn.disabled = true;
-          startBtn.textContent = "本物AR非対応";
-          supportText.innerHTML =
-            "この端末では immersive-ar が使えません。Android Chrome＋ARCore対応端末だと動く可能性が高いです。";
-          fakeBtn.style.display = "block";
-        }
-      } catch (error) {
-        startBtn.disabled = true;
-        startBtn.textContent = "対応確認失敗";
-        supportText.innerHTML =
-          "WebXRの対応確認でエラーが出ました。<br>" + error.message;
-        fakeBtn.style.display = "block";
-      }
-    }
-
-    async function startAR() {
-      try {
-        setStatus(
-          "<strong>AR起動中...</strong><br>カメラ許可が出たら許可してください。"
-        );
-
-        const sessionInit = {
-          requiredFeatures: ["hit-test"],
-          optionalFeatures: ["dom-overlay", "local-floor"],
-          domOverlay: { root: document.body }
-        };
-
-        const session = await navigator.xr.requestSession("immersive-ar", sessionInit);
-        currentSession = session;
-
-        session.addEventListener("end", onSessionEnd);
-
-        await renderer.xr.setSession(session);
-
-        ui.classList.add("hidden");
-        hint.style.display = "block";
-
-        renderer.setAnimationLoop(render);
-
-        setStatus(
-          "<strong>AR起動成功</strong><br>床に向けてゆっくり動かしてください。白い輪が出たらタップ。"
-        );
-      } catch (error) {
-        setStatus(
-          "<strong>AR起動失敗</strong><br>" +
-          error.name + "<br>" +
-          error.message + "<br><br>" +
-          "端末・ブラウザがマーカーなしARに対応していない可能性があります。"
-        );
-        ui.classList.remove("hidden");
-        fakeBtn.style.display = "block";
-      }
-    }
-
-    function onSessionEnd() {
-      hitTestSourceRequested = false;
-      hitTestSource = null;
-      currentSession = null;
-      reticle.visible = false;
-      renderer.setAnimationLoop(null);
-      ui.classList.remove("hidden");
-      hint.style.display = "none";
-      setStatus("<strong>AR終了</strong><br>もう一度開始できます。");
-    }
-
-    function render(timestamp, frame) {
-      if (frame) {
-        const referenceSpace = renderer.xr.getReferenceSpace();
-        const session = renderer.xr.getSession();
-
-        if (!hitTestSourceRequested) {
-          session.requestReferenceSpace("viewer").then((viewerSpace) => {
-            session.requestHitTestSource({ space: viewerSpace }).then((source) => {
-              hitTestSource = source;
-            });
-          });
-
-          session.addEventListener("end", () => {
-            hitTestSourceRequested = false;
-            hitTestSource = null;
-          });
-
-          hitTestSourceRequested = true;
-        }
-
-        if (hitTestSource) {
-          const hitTestResults = frame.getHitTestResults(hitTestSource);
-
-          if (hitTestResults.length > 0) {
-            const hit = hitTestResults[0];
-            const pose = hit.getPose(referenceSpace);
-
-            reticle.visible = true;
-            reticle.matrix.fromArray(pose.transform.matrix);
-
-            setStatus(
-              "<strong>床を検出中</strong><br>白い輪の場所に宝箱を置けます。画面をタップしてください。"
-            );
-          } else {
-            reticle.visible = false;
-            setStatus(
-              "<strong>床を探しています</strong><br>床や机に向けて、スマホをゆっくり左右に動かしてください。"
-            );
-          }
-        }
-      }
-
-      rotateTreasures();
-      renderer.render(scene, camera);
-    }
-
-    function placeTreasure() {
-      if (!reticle.visible) {
-        setStatus(
-          "<strong>まだ置けません</strong><br>白い輪が出るまで床に向けて動かしてください。"
-        );
-        return;
-      }
-
-      const treasure = createTreasure();
-      treasure.position.setFromMatrixPosition(reticle.matrix);
-      treasure.quaternion.setFromRotationMatrix(reticle.matrix);
-
-      scene.add(treasure);
-      placedCount++;
-
-      setStatus(
-        "<strong>宝箱を置きました！</strong><br>設置数：" + placedCount + "<br>別の場所をタップすると追加できます。"
-      );
-    }
-
-    function createTreasure() {
-      const group = new THREE.Group();
-      group.userData.spin = Math.random() * Math.PI * 2;
-
-      const baseMat = new THREE.MeshStandardMaterial({
-        color: 0x8b4513,
-        roughness: 0.55,
-        metalness: 0.15
+      chestLid.setAttribute("animation", {
+        property: "rotation",
+        to: "-55 0 0",
+        dur: 600,
+        easing: "easeOutQuad"
       });
 
-      const lidMat = new THREE.MeshStandardMaterial({
-        color: 0xb06a2b,
-        roughness: 0.45,
-        metalness: 0.12
-      });
+      treasureStar.setAttribute("visible", "true");
+      treasureRing.setAttribute("visible", "true");
 
-      const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xffd75a,
-        roughness: 0.25,
-        metalness: 0.75
-      });
-
-      const darkMat = new THREE.MeshStandardMaterial({
-        color: 0x111111,
-        roughness: 0.6,
-        metalness: 0.1
-      });
-
-      const glowMat = new THREE.MeshStandardMaterial({
-        color: 0xfff176,
-        emissive: 0xffd54f,
-        emissiveIntensity: 1.2,
-        roughness: 0.2,
-        metalness: 0.2
-      });
-
-      const base = new THREE.Mesh(
-        new THREE.BoxGeometry(0.55, 0.25, 0.38),
-        baseMat
-      );
-      base.position.y = 0.14;
-      group.add(base);
-
-      const lid = new THREE.Mesh(
-        new THREE.BoxGeometry(0.6, 0.16, 0.42),
-        lidMat
-      );
-      lid.position.y = 0.36;
-      lid.rotation.x = -0.18;
-      group.add(lid);
-
-      const frontGold1 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.62, 0.045, 0.035),
-        goldMat
-      );
-      frontGold1.position.set(0, 0.23, -0.215);
-      group.add(frontGold1);
-
-      const frontGold2 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.62, 0.05, 0.035),
-        goldMat
-      );
-      frontGold2.position.set(0, 0.43, -0.23);
-      group.add(frontGold2);
-
-      const lock = new THREE.Mesh(
-        new THREE.BoxGeometry(0.09, 0.12, 0.035),
-        darkMat
-      );
-      lock.position.set(0, 0.31, -0.245);
-      group.add(lock);
-
-      const coin1 = new THREE.Mesh(
-        new THREE.SphereGeometry(0.055, 24, 16),
-        goldMat
-      );
-      coin1.position.set(-0.14, 0.52, 0);
-      group.add(coin1);
-
-      const coin2 = new THREE.Mesh(
-        new THREE.SphereGeometry(0.055, 24, 16),
-        goldMat
-      );
-      coin2.position.set(0.08, 0.55, 0.04);
-      group.add(coin2);
-
-      const star = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.12),
-        glowMat
-      );
-      star.position.set(0, 0.78, 0);
-      star.userData.isStar = true;
-      group.add(star);
-
-      const pointLight = new THREE.PointLight(0xfff176, 1.8, 1.8);
-      pointLight.position.set(0, 0.75, 0);
-      group.add(pointLight);
-
-      group.scale.setScalar(1);
-      return group;
+      alert("宝箱オープン！Soraの星を発見！");
     }
 
-    function rotateTreasures() {
-      scene.traverse((obj) => {
-        if (obj.userData && obj.userData.isStar) {
-          obj.rotation.x += 0.025;
-          obj.rotation.y += 0.035;
-          obj.position.y = 0.78 + Math.sin(performance.now() * 0.004) * 0.04;
-        }
+    function jump() {
+      const pos = player.getAttribute("position");
+
+      player.setAttribute("animation__jumpup", {
+        property: "position",
+        to: `${pos.x} 2.2 ${pos.z}`,
+        dur: 220,
+        easing: "easeOutQuad"
       });
-    }
 
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    async function startFakeAR() {
-      ui.classList.add("hidden");
-      statusBox.style.display = "block";
-      hint.style.display = "none";
-
-      setStatus(
-        "<strong>AR風モード</strong><br>この端末は本物の床認識ARに非対応のため、カメラ背景に宝箱を重ねます。"
-      );
-
-      fakeCamera.style.display = "block";
-      fakeLayer.style.display = "block";
-      renderer.domElement.style.display = "none";
-
-      try {
-        let stream;
-
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
-            audio: false
-          });
-        } catch (e) {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-          });
-        }
-
-        fakeCamera.srcObject = stream;
-        fakeCamera.onloadedmetadata = () => fakeCamera.play();
-
-        addFakeTreasure(window.innerWidth / 2, window.innerHeight * 0.55);
-
-        fakeLayer.addEventListener("click", (e) => {
-          addFakeTreasure(e.clientX, e.clientY);
+      setTimeout(() => {
+        const now = player.getAttribute("position");
+        player.setAttribute("animation__jumpdown", {
+          property: "position",
+          to: `${now.x} 1.6 ${now.z}`,
+          dur: 260,
+          easing: "easeInQuad"
         });
-
-        fakeLayer.addEventListener("touchstart", (e) => {
-          const t = e.touches[0];
-          if (t) addFakeTreasure(t.clientX, t.clientY);
-        }, { passive: true });
-
-      } catch (error) {
-        setStatus(
-          "<strong>カメラ起動失敗</strong><br>" +
-          error.name + "<br>" +
-          error.message
-        );
-      }
+      }, 230);
     }
 
-    function addFakeTreasure(x, y) {
-      const el = document.createElement("div");
-      el.className = "fakeTreasure";
-      el.textContent = "💎";
-      el.style.left = x + "px";
-      el.style.top = y + "px";
-      fakeLayer.appendChild(el);
+    function bindHoldButton(btn, key) {
+      btn.addEventListener("mousedown", () => moving[key] = true);
+      btn.addEventListener("mouseup", () => moving[key] = false);
+      btn.addEventListener("mouseleave", () => moving[key] = false);
+
+      btn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        moving[key] = true;
+      }, { passive: false });
+
+      btn.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        moving[key] = false;
+      }, { passive: false });
     }
 
-    startBtn.addEventListener("click", startAR);
-    startBtn.addEventListener("touchstart", (e) => {
+    bindHoldButton(forwardBtn, "forward");
+    bindHoldButton(backBtn, "back");
+    bindHoldButton(leftBtn, "left");
+    bindHoldButton(rightBtn, "right");
+
+    jumpBtn.addEventListener("click", jump);
+    jumpBtn.addEventListener("touchstart", (e) => {
       e.preventDefault();
-      startAR();
+      jump();
     }, { passive: false });
 
-    fakeBtn.addEventListener("click", startFakeAR);
-    fakeBtn.addEventListener("touchstart", (e) => {
+    openBtn.addEventListener("click", openTreasure);
+    openBtn.addEventListener("touchstart", (e) => {
       e.preventDefault();
-      startFakeAR();
+      openTreasure();
     }, { passive: false });
+
+    treasure.addEventListener("click", openTreasure);
+
+    function gameLoop() {
+      const speed = 0.08;
+
+      if (moving.forward) movePlayer("forward", speed);
+      if (moving.back) movePlayer("back", speed);
+      if (moving.left) movePlayer("left", speed);
+      if (moving.right) movePlayer("right", speed);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
   </script>
 </body>
 </html>
