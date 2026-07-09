@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Sora Quest VR Game</title>
+  <title>Sora Quest VR Stages</title>
 
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
@@ -23,33 +23,27 @@
       right: 10px;
       top: 10px;
       z-index: 20;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      pointer-events: none;
       color: #fff;
+      pointer-events: none;
+      display: grid;
+      gap: 8px;
     }
 
     .panel {
-      background: rgba(0, 0, 0, 0.62);
-      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(0, 0, 0, 0.64);
+      border: 1px solid rgba(255,255,255,0.18);
       border-radius: 16px;
       padding: 10px 12px;
       box-shadow: 0 8px 28px rgba(0,0,0,0.35);
       backdrop-filter: blur(8px);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     #topInfo {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    #quest {
-      font-size: 13px;
-      line-height: 1.55;
     }
 
     #quest strong {
@@ -60,16 +54,16 @@
       position: fixed;
       left: 50%;
       top: 50%;
-      z-index: 25;
+      z-index: 50;
       transform: translate(-50%, -50%);
       width: min(520px, calc(100vw - 28px));
-      background: rgba(0,0,0,0.78);
+      background: rgba(0,0,0,0.82);
       color: #fff;
-      border: 1px solid rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.2);
       border-radius: 24px;
       padding: 18px 16px;
       text-align: center;
-      box-shadow: 0 18px 70px rgba(0,0,0,0.55);
+      box-shadow: 0 18px 70px rgba(0,0,0,0.58);
       backdrop-filter: blur(12px);
       display: none;
       pointer-events: auto;
@@ -85,17 +79,17 @@
       margin: 0 0 14px;
       line-height: 1.65;
       font-size: 14px;
-      color: rgba(255,255,255,0.86);
+      color: rgba(255,255,255,0.88);
     }
 
     #message button {
       width: 100%;
-      max-width: 280px;
+      max-width: 300px;
       border: none;
       border-radius: 999px;
       padding: 13px 18px;
       font-size: 16px;
-      font-weight: 800;
+      font-weight: 900;
       color: #fff;
       background: linear-gradient(135deg, #34a7ff, #7c5cff);
       cursor: pointer;
@@ -122,9 +116,9 @@
       font-size: 15px;
       font-weight: 900;
       color: white;
-      background: rgba(60, 140, 255, 0.86);
+      background: rgba(60, 140, 255, 0.88);
       box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-      touch-action: manipulation;
+      touch-action: none;
       user-select: none;
     }
 
@@ -137,12 +131,16 @@
       background: rgba(255, 174, 54, 0.9);
     }
 
-    #openBtn {
+    #runBtn {
+      background: rgba(30, 190, 130, 0.9);
+    }
+
+    #restartBtn {
       background: rgba(124, 92, 255, 0.9);
     }
 
-    #runBtn {
-      background: rgba(30, 190, 130, 0.9);
+    #soundBtn {
+      background: rgba(50, 50, 50, 0.9);
     }
 
     #crosshair {
@@ -171,10 +169,6 @@
       border-radius: 50%;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
     @media (min-width: 900px) {
       #controls {
         width: 520px;
@@ -184,7 +178,7 @@
       }
 
       #hud {
-        width: 520px;
+        width: 560px;
         left: 10px;
         right: auto;
       }
@@ -196,18 +190,28 @@
   <div id="hud">
     <div id="topInfo">
       <div class="panel">
-        HP：<span id="hpText">❤️❤️❤️</span><br>
-        宝石：<span id="gemText">0 / 6</span>
+        ステージ：<span id="stageText">1</span><br>
+        HP：<span id="hpText">❤️❤️❤️</span>
       </div>
       <div class="panel">
-        鍵：<span id="keyText">なし</span><br>
-        残り時間：<span id="timeText">120</span>秒
+        宝石：<span id="gemText">0 / 3</span><br>
+        鍵：<span id="keyText">なし</span>
+      </div>
+    </div>
+
+    <div id="topInfo">
+      <div class="panel">
+        お宝：<span id="treasureText">0</span><br>
+        仲間：<span id="petText">0</span>
+      </div>
+      <div class="panel">
+        残り時間：<span id="timeText">90</span>秒<br>
+        目的：<span id="goalText">探索</span>
       </div>
     </div>
 
     <div id="quest" class="panel">
-      <strong>ミッション：</strong>
-      森の中の宝石を6個集めて、金の鍵を取り、奥の宝箱を開けよう。
+      <strong>ミッション：</strong> 宝石を集めて鍵を取り、お宝たまごを孵化させよう。
     </div>
   </div>
 
@@ -215,9 +219,7 @@
 
   <div id="message">
     <h1 id="messageTitle">Sora Quest VR</h1>
-    <p id="messageBody">
-      宝石を集めて、敵を避けて、宝箱を開けよう。
-    </p>
+    <p id="messageBody">ステージ制のVRゲームです。</p>
     <button id="messageBtn">スタート</button>
   </div>
 
@@ -227,10 +229,10 @@
     <button class="controlBtn" id="rightBtn">右</button>
     <button class="controlBtn" id="backBtn">後ろ</button>
     <button class="controlBtn" id="jumpBtn">ジャンプ</button>
-    <button class="controlBtn" id="openBtn">開ける</button>
     <button class="controlBtn" id="runBtn">ダッシュ</button>
     <button class="controlBtn" id="restartBtn">やり直し</button>
     <button class="controlBtn" id="soundBtn">音ON</button>
+    <button class="controlBtn" id="hintBtn">ヒント</button>
   </div>
 
   <a-scene
@@ -239,18 +241,11 @@
     renderer="antialias: true; colorManagement: true;"
     vr-mode-ui="enabled: true"
   >
-    <a-assets>
-    </a-assets>
+    <a-sky id="sky" color="#8fd8ff"></a-sky>
 
-    <!-- 光 -->
-    <a-entity light="type: ambient; intensity: 0.72; color: #ffffff"></a-entity>
-    <a-entity light="type: directional; intensity: 1.2; color: #fff4cc" position="4 8 3"></a-entity>
-    <a-entity light="type: point; intensity: 0.9; distance: 18; color: #7be8ff" position="0 4 -12"></a-entity>
+    <a-entity id="ambientLight" light="type: ambient; intensity: 0.75; color: #ffffff"></a-entity>
+    <a-entity id="sunLight" light="type: directional; intensity: 1.25; color: #fff4cc" position="4 8 3"></a-entity>
 
-    <!-- 空 -->
-    <a-sky color="#8fd8ff"></a-sky>
-
-    <!-- プレイヤー -->
     <a-entity id="player" position="0 1.6 8">
       <a-entity
         id="camera"
@@ -259,140 +254,20 @@
       ></a-entity>
     </a-entity>
 
-    <!-- 地面 -->
-    <a-plane
-      position="0 0 0"
-      rotation="-90 0 0"
-      width="90"
-      height="90"
-      color="#5ebf70"
-      roughness="1"
-    ></a-plane>
-
-    <!-- 道 -->
-    <a-plane
-      position="0 0.012 -4"
-      rotation="-90 0 0"
-      width="5"
-      height="42"
-      color="#d8b76a"
-    ></a-plane>
-
-    <!-- スタート看板 -->
-    <a-entity position="0 1.45 4">
-      <a-plane width="5.4" height="1.6" color="#1d2530" opacity="0.88"></a-plane>
-      <a-text
-        value="SORA QUEST"
-        position="0 0.35 0.03"
-        align="center"
-        color="#ffe066"
-        width="5"
-      ></a-text>
-      <a-text
-        value="Collect 6 crystals, get the key, open the treasure!"
-        position="0 -0.16 0.03"
-        align="center"
-        color="#ffffff"
-        width="4.8"
-      ></a-text>
-    </a-entity>
-
-    <!-- 光るゲート -->
-    <a-torus
-      id="gate"
-      position="0 2.1 -11"
-      radius="2.1"
-      radius-tubular="0.08"
-      color="#5ad7ff"
-      animation="property: rotation; to: 0 360 0; loop: true; dur: 5200; easing: linear;"
-    ></a-torus>
-
-    <a-text
-      value="CRYSTAL FOREST"
-      position="0 4.35 -11"
-      align="center"
-      color="#ffffff"
-      width="5"
-    ></a-text>
-
-    <!-- 宝箱 -->
-    <a-entity id="treasure" position="0 0 -24">
-      <a-box
-        id="chestBase"
-        position="0 0.35 0"
-        scale="1.8 0.72 1.08"
-        color="#8B4513"
-      ></a-box>
-
-      <a-box
-        id="chestLid"
-        position="0 0.88 0"
-        scale="1.92 0.36 1.14"
-        color="#B06A2B"
-      ></a-box>
-
-      <a-box
-        position="0 1.02 -0.60"
-        scale="2.05 0.12 0.08"
-        color="#FFD75A"
-      ></a-box>
-
-      <a-box
-        position="0 0.45 -0.60"
-        scale="2.05 0.12 0.08"
-        color="#FFD75A"
-      ></a-box>
-
-      <a-box
-        position="0 0.64 -0.67"
-        scale="0.28 0.34 0.08"
-        color="#222222"
-      ></a-box>
-
-      <a-sphere
-        id="treasureLight"
-        position="0 1.65 0"
-        radius="0.25"
-        color="#fff176"
-        visible="false"
-        animation="property: position; from: 0 1.45 0; to: 0 2.25 0; dir: alternate; loop: true; dur: 900; easing: easeInOutSine;"
-      ></a-sphere>
-
-      <a-ring
-        id="treasureRing"
-        position="0 1.65 0"
-        rotation="90 0 0"
-        radius-inner="0.32"
-        radius-outer="0.40"
-        color="#ffffff"
-        visible="false"
-        animation="property: rotation; to: 90 0 360; loop: true; dur: 1300; easing: linear;"
-      ></a-ring>
-
-      <a-text
-        value="TREASURE"
-        position="0 1.85 -0.8"
-        align="center"
-        color="#ffe066"
-        width="3.8"
-      ></a-text>
-    </a-entity>
-
-    <!-- ここにJSで木・宝石・敵・鍵を生成 -->
     <a-entity id="world"></a-entity>
   </a-scene>
 
   <script>
     const THREE_REF = AFRAME.THREE;
 
-    const player = document.getElementById("player");
-    const camera = document.getElementById("camera");
-    const world = document.getElementById("world");
-
+    const stageText = document.getElementById("stageText");
     const hpText = document.getElementById("hpText");
     const gemText = document.getElementById("gemText");
     const keyText = document.getElementById("keyText");
+    const treasureText = document.getElementById("treasureText");
+    const petText = document.getElementById("petText");
     const timeText = document.getElementById("timeText");
+    const goalText = document.getElementById("goalText");
     const quest = document.getElementById("quest");
 
     const message = document.getElementById("message");
@@ -400,30 +275,99 @@
     const messageBody = document.getElementById("messageBody");
     const messageBtn = document.getElementById("messageBtn");
 
-    const chestLid = document.getElementById("chestLid");
-    const treasureLight = document.getElementById("treasureLight");
-    const treasureRing = document.getElementById("treasureRing");
+    const world = document.getElementById("world");
+    const sky = document.getElementById("sky");
+    const ambientLight = document.getElementById("ambientLight");
+    const sunLight = document.getElementById("sunLight");
+
+    const player = document.getElementById("player");
+    const camera = document.getElementById("camera");
 
     const forwardBtn = document.getElementById("forwardBtn");
     const backBtn = document.getElementById("backBtn");
     const leftBtn = document.getElementById("leftBtn");
     const rightBtn = document.getElementById("rightBtn");
     const jumpBtn = document.getElementById("jumpBtn");
-    const openBtn = document.getElementById("openBtn");
     const runBtn = document.getElementById("runBtn");
     const restartBtn = document.getElementById("restartBtn");
     const soundBtn = document.getElementById("soundBtn");
+    const hintBtn = document.getElementById("hintBtn");
+
+    const stages = [
+      {
+        name: "クリスタルの森",
+        sky: "#8fd8ff",
+        ground: "#5ebf70",
+        path: "#d8b76a",
+        fog: "#8fd8ff",
+        gemColor1: "#7be8ff",
+        gemColor2: "#c58cff",
+        enemyColor: "#7c2cff",
+        enemyRing: "#ff5cff",
+        torch: "#ffb02e",
+        gems: 3,
+        time: 90,
+        start: { x: 0, y: 1.6, z: 8 },
+        treasure: { x: 0, y: 0, z: -22 },
+        key: { x: 0, y: 1, z: -11 },
+        petName: "そらピヨ",
+        petColor: "#7be8ff"
+      },
+      {
+        name: "氷の洞窟",
+        sky: "#bdefff",
+        ground: "#7fc9d6",
+        path: "#e6f7ff",
+        fog: "#bdefff",
+        gemColor1: "#ffffff",
+        gemColor2: "#6ee7ff",
+        enemyColor: "#2c7cff",
+        enemyRing: "#8ff5ff",
+        torch: "#7be8ff",
+        gems: 4,
+        time: 105,
+        start: { x: 0, y: 1.6, z: 8 },
+        treasure: { x: 0, y: 0, z: -25 },
+        key: { x: -3, y: 1, z: -14 },
+        petName: "ゆきモコ",
+        petColor: "#eaffff"
+      },
+      {
+        name: "火山の神殿",
+        sky: "#ff9b70",
+        ground: "#5a4238",
+        path: "#b56a32",
+        fog: "#ff9b70",
+        gemColor1: "#ffdf5a",
+        gemColor2: "#ff6a3d",
+        enemyColor: "#b02cff",
+        enemyRing: "#ff723d",
+        torch: "#ff4c2e",
+        gems: 5,
+        time: 120,
+        start: { x: 0, y: 1.6, z: 8 },
+        treasure: { x: 0, y: 0, z: -28 },
+        key: { x: 3, y: 1, z: -16 },
+        petName: "ほのおリュウ",
+        petColor: "#ffb02e"
+      }
+    ];
 
     let audioCtx = null;
     let soundEnabled = false;
 
     let state;
+    let stageIndex = 0;
     let gems = [];
     let enemies = [];
     let keyEntity = null;
+    let treasureEntity = null;
+    let chestLid = null;
+    let eggEntity = null;
+    let hatchedPet = null;
 
     let keys = {};
-    let moving = {
+    let buttonMove = {
       forward: false,
       back: false,
       left: false,
@@ -434,18 +378,25 @@
     let lastDamageTime = 0;
     let lastTimeTick = performance.now();
     let lastFrame = performance.now();
+    let toastTimer = null;
 
-    function createInitialState() {
+    function createState() {
+      const stage = stages[stageIndex];
+
       return {
         hp: 3,
         gems: 0,
-        totalGems: 6,
+        totalGems: stage.gems,
         hasKey: false,
-        time: 120,
+        treasures: state ? state.treasures : 0,
+        pets: state ? state.pets : 0,
+        time: stage.time,
         gameStarted: false,
         gameOver: false,
-        gameClear: false,
-        chestOpen: false,
+        stageClear: false,
+        allClear: false,
+        treasureGot: false,
+        hatching: false,
         yVelocity: 0,
         onGround: true
       };
@@ -474,8 +425,6 @@
 
       soundEnabled = true;
       soundBtn.textContent = "音ON";
-      playTone(660, 0.08, "sine", 0.08);
-      setTimeout(() => playTone(990, 0.08, "sine", 0.08), 80);
     }
 
     function playTone(freq, duration, type = "sine", volume = 0.08) {
@@ -497,23 +446,65 @@
       osc.stop(audioCtx.currentTime + duration);
     }
 
+    function playCollectSound() {
+      playTone(880, 0.08, "sine", 0.08);
+      setTimeout(() => playTone(1180, 0.08, "sine", 0.07), 70);
+    }
+
+    function playKeySound() {
+      playTone(523, 0.1, "sine", 0.08);
+      setTimeout(() => playTone(784, 0.1, "sine", 0.08), 100);
+      setTimeout(() => playTone(1046, 0.12, "sine", 0.08), 200);
+    }
+
+    function playHatchSound() {
+      playTone(392, 0.11, "triangle", 0.08);
+      setTimeout(() => playTone(523, 0.11, "triangle", 0.08), 120);
+      setTimeout(() => playTone(659, 0.11, "triangle", 0.08), 240);
+      setTimeout(() => playTone(1046, 0.22, "sine", 0.09), 380);
+    }
+
+    function playDamageSound() {
+      playTone(180, 0.14, "sawtooth", 0.06);
+      playTone(120, 0.18, "sawtooth", 0.05);
+    }
+
     function updateHUD() {
+      const stage = stages[stageIndex];
+
+      stageText.textContent = (stageIndex + 1) + " / " + stages.length;
       hpText.textContent = "❤️".repeat(state.hp) + "♡".repeat(3 - state.hp);
       gemText.textContent = state.gems + " / " + state.totalGems;
       keyText.textContent = state.hasKey ? "あり 🔑" : "なし";
+      treasureText.textContent = state.treasures;
+      petText.textContent = state.pets;
       timeText.textContent = state.time;
+      goalText.textContent = stage.name;
 
-      if (state.gameClear) {
-        quest.innerHTML = "<strong>クリア！</strong> Soraの宝箱を開けた！";
+      if (state.allClear) {
+        quest.innerHTML = "<strong>完全クリア！</strong> すべてのお宝たまごが孵化した！";
+      } else if (state.stageClear) {
+        quest.innerHTML = "<strong>ステージクリア！</strong> 次のステージへ進もう。";
       } else if (state.gameOver) {
         quest.innerHTML = "<strong>ゲームオーバー。</strong> やり直してもう一度挑戦しよう。";
       } else if (state.gems < state.totalGems) {
-        quest.innerHTML = "<strong>ミッション：</strong> 宝石を6個集めよう。敵に近づきすぎるとHPが減る。";
+        quest.innerHTML = "<strong>ミッション：</strong> 宝石を集めよう。敵に触れるとHPが減る。";
       } else if (!state.hasKey) {
-        quest.innerHTML = "<strong>ミッション：</strong> 金の鍵が出現した！鍵を取ろう。";
+        quest.innerHTML = "<strong>ミッション：</strong> 鍵が出現した！鍵を取ろう。";
+      } else if (!state.treasureGot) {
+        quest.innerHTML = "<strong>ミッション：</strong> 宝箱に近づくだけで、お宝たまごを自動入手。開けるボタンはいりません。";
       } else {
-        quest.innerHTML = "<strong>ミッション：</strong> 奥の宝箱に近づいて「開ける」を押そう。";
+        quest.innerHTML = "<strong>ミッション：</strong> お宝たまごが孵化中！";
       }
+    }
+
+    function showToast(text) {
+      quest.innerHTML = "<strong>INFO：</strong> " + text;
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        updateHUD();
+      }, 1800);
     }
 
     function clearWorld() {
@@ -524,6 +515,10 @@
       gems = [];
       enemies = [];
       keyEntity = null;
+      treasureEntity = null;
+      chestLid = null;
+      eggEntity = null;
+      hatchedPet = null;
     }
 
     function makeEntity(tag, attrs, parent = world) {
@@ -537,50 +532,184 @@
       return el;
     }
 
-    function buildWorld() {
-      clearWorld();
+    function setTheme() {
+      const stage = stages[stageIndex];
 
-      const treePositions = [
+      sky.setAttribute("color", stage.sky);
+      ambientLight.setAttribute("light", "type: ambient; intensity: 0.75; color: #ffffff");
+      sunLight.setAttribute("light", "type: directional; intensity: 1.25; color: #fff4cc");
+    }
+
+    function buildStage() {
+      const stage = stages[stageIndex];
+
+      clearWorld();
+      setTheme();
+
+      player.setAttribute("position", `${stage.start.x} ${stage.start.y} ${stage.start.z}`);
+
+      makeEntity("a-plane", {
+        position: "0 0 0",
+        rotation: "-90 0 0",
+        width: "90",
+        height: "90",
+        color: stage.ground,
+        roughness: "1"
+      });
+
+      makeEntity("a-plane", {
+        position: "0 0.012 -6",
+        rotation: "-90 0 0",
+        width: "5",
+        height: "52",
+        color: stage.path
+      });
+
+      makeEntity("a-entity", {
+        light: `type: point; intensity: 1.0; distance: 18; color: ${stage.torch}`,
+        position: "0 4 -12"
+      });
+
+      makeStartBoard(stage);
+      makeGate(stage);
+      makeTrees(stage);
+      makeRocks(stage);
+      makeGems(stage);
+      makeKey(stage);
+      makeEnemies(stage);
+      makeTreasure(stage);
+      makeTorches(stage);
+    }
+
+    function makeStartBoard(stage) {
+      const board = makeEntity("a-entity", {
+        position: "0 1.45 4"
+      });
+
+      makeEntity("a-plane", {
+        width: "5.6",
+        height: "1.7",
+        color: "#1d2530",
+        opacity: "0.88"
+      }, board);
+
+      makeEntity("a-text", {
+        value: `STAGE ${stageIndex + 1}  ${stage.name}`,
+        position: "0 0.38 0.03",
+        align: "center",
+        color: "#ffe066",
+        width: "5.2"
+      }, board);
+
+      makeEntity("a-text", {
+        value: "Collect crystals, get the key, hatch the treasure egg!",
+        position: "0 -0.18 0.03",
+        align: "center",
+        color: "#ffffff",
+        width: "5"
+      }, board);
+    }
+
+    function makeGate(stage) {
+      makeEntity("a-torus", {
+        position: "0 2.1 -10",
+        radius: "2.1",
+        "radius-tubular": "0.08",
+        color: stage.gemColor1,
+        animation: "property: rotation; to: 0 360 0; loop: true; dur: 5200; easing: linear;"
+      });
+
+      makeEntity("a-text", {
+        value: stage.name,
+        position: "0 4.35 -10",
+        align: "center",
+        color: "#ffffff",
+        width: "5"
+      });
+    }
+
+    function makeTrees(stage) {
+      const base = [
         [-6, -1], [6, -2], [-7, -6], [7, -7], [-5, -11], [5, -12],
         [-8, -16], [8, -16], [-4, -21], [4, -20], [-10, 3], [10, 2],
         [-12, -8], [12, -10], [-13, -20], [13, -22], [-2, -30], [2, -31]
       ];
 
-      treePositions.forEach((p, i) => {
+      base.forEach((p, i) => {
         const x = p[0];
-        const z = p[1];
-        const height = 2 + (i % 3) * 0.35;
+        const z = p[1] - stageIndex * 1.3;
+        const h = 2 + (i % 3) * 0.35;
 
-        makeEntity("a-cylinder", {
-          position: `${x} ${height / 2} ${z}`,
-          radius: "0.24",
-          height: `${height}`,
-          color: "#7a4a28"
-        });
+        if (stageIndex === 0) {
+          makeEntity("a-cylinder", {
+            position: `${x} ${h / 2} ${z}`,
+            radius: "0.24",
+            height: `${h}`,
+            color: "#7a4a28"
+          });
 
-        makeEntity("a-cone", {
-          position: `${x} ${height + 0.9} ${z}`,
-          "radius-bottom": `${1.05 + (i % 4) * 0.13}`,
-          height: "2.2",
-          color: i % 2 === 0 ? "#226b39" : "#2d7a44"
-        });
+          makeEntity("a-cone", {
+            position: `${x} ${h + 0.9} ${z}`,
+            "radius-bottom": `${1.05 + (i % 4) * 0.13}`,
+            height: "2.2",
+            color: i % 2 === 0 ? "#226b39" : "#2d7a44"
+          });
+        }
+
+        if (stageIndex === 1) {
+          makeEntity("a-cone", {
+            position: `${x} 1.3 ${z}`,
+            "radius-bottom": "0.75",
+            height: "2.6",
+            color: "#eaffff",
+            opacity: "0.92"
+          });
+
+          makeEntity("a-cone", {
+            position: `${x} 2.5 ${z}`,
+            "radius-bottom": "0.48",
+            height: "1.5",
+            color: "#bff6ff",
+            opacity: "0.9"
+          });
+        }
+
+        if (stageIndex === 2) {
+          makeEntity("a-cone", {
+            position: `${x} 1.1 ${z}`,
+            "radius-bottom": "0.85",
+            height: "2.2",
+            color: "#5b2b1d"
+          });
+
+          makeEntity("a-sphere", {
+            position: `${x} 2.25 ${z}`,
+            radius: "0.32",
+            color: "#ff4c2e",
+            animation: "property: scale; from: 1 1 1; to: 1.25 1.25 1.25; dir: alternate; loop: true; dur: 520; easing: easeInOutSine;"
+          });
+        }
       });
+    }
 
-      const rockPositions = [
+    function makeRocks(stage) {
+      const rocks = [
         [-3.4, 1.2], [3.4, -4.5], [-4.2, -8.2], [4.8, -14.4],
-        [-2.6, -18.7], [3.2, -27.2], [-6.2, -25.5]
+        [-2.6, -18.7], [3.2, -27.2], [-6.2, -25.5], [6.2, -30]
       ];
 
-      rockPositions.forEach((p, i) => {
+      rocks.forEach((p, i) => {
         makeEntity("a-sphere", {
-          position: `${p[0]} 0.25 ${p[1]}`,
+          position: `${p[0]} 0.25 ${p[1] - stageIndex * 1.5}`,
           radius: `${0.35 + (i % 3) * 0.14}`,
           scale: "1.3 0.55 1",
-          color: "#6d767f"
+          color: stageIndex === 1 ? "#dff9ff" : "#6d767f"
         });
       });
+    }
 
-      const gemPositions = [
+    function makeGems(stage) {
+      const positions = [
         [-2.2, -2.5],
         [2.4, -6.4],
         [-3.2, -10.5],
@@ -589,34 +718,37 @@
         [2.2, -22.4]
       ];
 
-      gemPositions.forEach((p, i) => {
+      for (let i = 0; i < stage.gems; i++) {
+        const p = positions[i];
         const gem = makeEntity("a-entity", {
           position: `${p[0]} 0.75 ${p[1]}`
         });
 
-        const body = makeEntity("a-sphere", {
-          radius: "0.22",
-          color: i % 2 === 0 ? "#7be8ff" : "#c58cff",
-          animation: "property: position; from: 0 0 0; to: 0 0.25 0; dir: alternate; loop: true; dur: 850; easing: easeInOutSine;"
+        makeEntity("a-octahedron", {
+          radius: "0.32",
+          color: i % 2 === 0 ? stage.gemColor1 : stage.gemColor2,
+          animation: "property: rotation; to: 0 360 0; loop: true; dur: 1500; easing: linear;"
         }, gem);
 
         makeEntity("a-ring", {
-          position: "0 -0.25 0",
+          position: "0 -0.38 0",
           rotation: "90 0 0",
-          "radius-inner": "0.32",
-          "radius-outer": "0.38",
+          "radius-inner": "0.35",
+          "radius-outer": "0.43",
           color: "#ffffff",
           opacity: "0.85",
-          animation: "property: rotation; to: 90 0 360; loop: true; dur: 1500; easing: linear;"
+          animation: "property: rotation; to: 90 0 360; loop: true; dur: 1600; easing: linear;"
         }, gem);
 
         gem.dataset.collected = "false";
         gems.push(gem);
-      });
+      }
+    }
 
+    function makeKey(stage) {
       keyEntity = makeEntity("a-entity", {
         id: "goldKey",
-        position: "0 1 -12",
+        position: `${stage.key.x} ${stage.key.y} ${stage.key.z}`,
         visible: "false"
       });
 
@@ -646,22 +778,28 @@
         scale: "0.08 0.18 0.08",
         color: "#ffd75a"
       }, keyEntity);
+    }
 
+    function makeEnemies(stage) {
+      const count = 3 + stageIndex;
       const enemyData = [
-        { x: -4, z: -6, minX: -5.6, maxX: -1.4, speed: 1.3 },
-        { x: 4, z: -12, minX: 1.5, maxX: 5.8, speed: 1.6 },
-        { x: -4, z: -18, minX: -6.2, maxX: -1.2, speed: 1.45 },
-        { x: 4, z: -23, minX: 1.2, maxX: 6.4, speed: 1.7 }
+        { x: -4, z: -6, minX: -5.8, maxX: -1.4, speed: 1.3 + stageIndex * 0.25 },
+        { x: 4, z: -12, minX: 1.4, maxX: 5.8, speed: 1.55 + stageIndex * 0.25 },
+        { x: -4, z: -18, minX: -6.2, maxX: -1.2, speed: 1.45 + stageIndex * 0.3 },
+        { x: 4, z: -23, minX: 1.2, maxX: 6.4, speed: 1.7 + stageIndex * 0.3 },
+        { x: 0, z: -27, minX: -4.5, maxX: 4.5, speed: 1.9 + stageIndex * 0.25 }
       ];
 
-      enemyData.forEach((e, i) => {
+      for (let i = 0; i < count; i++) {
+        const e = enemyData[i];
+
         const enemy = makeEntity("a-entity", {
           position: `${e.x} 0.55 ${e.z}`
         });
 
         makeEntity("a-sphere", {
           radius: "0.45",
-          color: "#7c2cff",
+          color: stage.enemyColor,
           scale: "1 0.75 1",
           animation: "property: scale; from: 1 0.72 1; to: 1.08 0.88 1.08; dir: alternate; loop: true; dur: 520; easing: easeInOutSine;"
         }, enemy);
@@ -695,7 +833,7 @@
           rotation: "90 0 0",
           "radius-inner": "0.48",
           "radius-outer": "0.56",
-          color: "#ff5cff",
+          color: stage.enemyRing,
           opacity: "0.55"
         }, enemy);
 
@@ -705,10 +843,78 @@
         enemy.dataset.dir = i % 2 === 0 ? "1" : "-1";
 
         enemies.push(enemy);
+      }
+    }
+
+    function makeTreasure(stage) {
+      treasureEntity = makeEntity("a-entity", {
+        id: "treasure",
+        position: `${stage.treasure.x} ${stage.treasure.y} ${stage.treasure.z}`
       });
 
+      makeEntity("a-box", {
+        position: "0 0.35 0",
+        scale: "1.8 0.72 1.08",
+        color: "#8B4513"
+      }, treasureEntity);
+
+      chestLid = makeEntity("a-box", {
+        position: "0 0.88 0",
+        scale: "1.92 0.36 1.14",
+        color: "#B06A2B"
+      }, treasureEntity);
+
+      makeEntity("a-box", {
+        position: "0 1.02 -0.60",
+        scale: "2.05 0.12 0.08",
+        color: "#FFD75A"
+      }, treasureEntity);
+
+      makeEntity("a-box", {
+        position: "0 0.45 -0.60",
+        scale: "2.05 0.12 0.08",
+        color: "#FFD75A"
+      }, treasureEntity);
+
+      makeEntity("a-box", {
+        position: "0 0.64 -0.67",
+        scale: "0.28 0.34 0.08",
+        color: "#222222"
+      }, treasureEntity);
+
+      makeEntity("a-text", {
+        value: "AUTO TREASURE",
+        position: "0 1.75 -0.8",
+        align: "center",
+        color: "#ffe066",
+        width: "3.8"
+      }, treasureEntity);
+
+      eggEntity = makeEntity("a-entity", {
+        position: "0 1.55 0",
+        visible: "false"
+      }, treasureEntity);
+
+      makeEntity("a-sphere", {
+        radius: "0.34",
+        scale: "1 1.25 1",
+        color: "#fff7d6",
+        animation: "property: rotation; to: 0 360 0; loop: true; dur: 1800; easing: linear;"
+      }, eggEntity);
+
+      makeEntity("a-ring", {
+        position: "0 -0.48 0",
+        rotation: "90 0 0",
+        "radius-inner": "0.4",
+        "radius-outer": "0.48",
+        color: "#ffffff",
+        animation: "property: rotation; to: 90 0 360; loop: true; dur: 1400; easing: linear;"
+      }, eggEntity);
+    }
+
+    function makeTorches(stage) {
       const torchPositions = [
-        [-2.8, -10.5], [2.8, -10.5], [-2.8, -23], [2.8, -23]
+        [-2.8, -10.5], [2.8, -10.5], [-2.8, -22], [2.8, -22]
       ];
 
       torchPositions.forEach((p) => {
@@ -722,45 +928,78 @@
         makeEntity("a-sphere", {
           position: `${p[0]} 1.65 ${p[1]}`,
           radius: "0.18",
-          color: "#ffb02e",
+          color: stage.torch,
           animation: "property: scale; from: 1 1 1; to: 1.25 1.25 1.25; dir: alternate; loop: true; dur: 420; easing: easeInOutSine;"
         });
 
         makeEntity("a-entity", {
-          light: "type: point; intensity: 0.75; distance: 7; color: #ffb02e",
+          light: `type: point; intensity: 0.75; distance: 7; color: ${stage.torch}`,
           position: `${p[0]} 1.6 ${p[1]}`
         });
       });
     }
 
-    function resetGame() {
-      state = createInitialState();
+    function resetStage(keepInventory = true) {
+      const prevTreasures = keepInventory && state ? state.treasures : 0;
+      const prevPets = keepInventory && state ? state.pets : 0;
 
-      player.setAttribute("position", "0 1.6 8");
+      state = createState();
+      state.treasures = prevTreasures;
+      state.pets = prevPets;
 
-      chestLid.removeAttribute("animation");
-      chestLid.setAttribute("rotation", "0 0 0");
-      treasureLight.setAttribute("visible", "false");
-      treasureRing.setAttribute("visible", "false");
-
-      buildWorld();
+      buildStage();
       updateHUD();
 
       lastDamageTime = 0;
       lastTimeTick = performance.now();
       lastFrame = performance.now();
 
+      const stage = stages[stageIndex];
+
       showMessage(
-        "Sora Quest VR",
-        "宝石を6個集めて、金の鍵を取り、奥の宝箱を開けよう。<br><br>PC：WASD / 矢印キーで移動、マウスで視点変更。<br>スマホ：画面ドラッグで視点変更、下のボタンで移動。",
+        `STAGE ${stageIndex + 1}：${stage.name}`,
+        `宝石を${stage.gems}個集めて鍵を取り、宝箱に近づこう。<br><br>今回は<strong>開けるボタンなし</strong>。条件達成後、宝箱に近づくと自動でお宝たまごを入手して孵化します。`,
         "スタート",
         () => {
           hideMessage();
-          state.gameStarted = true;
           enableAudio();
+          state.gameStarted = true;
           updateHUD();
         }
       );
+    }
+
+    function resetFullGame() {
+      stageIndex = 0;
+      state = {
+        treasures: 0,
+        pets: 0
+      };
+      resetStage(false);
+    }
+
+    function nextStage() {
+      stageIndex++;
+
+      if (stageIndex >= stages.length) {
+        state.allClear = true;
+        updateHUD();
+
+        showMessage(
+          "完全クリア！",
+          `すべてのお宝たまごが孵化しました！<br><br>入手お宝：${state.treasures}個<br>仲間：${state.pets}体`,
+          "最初から遊ぶ",
+          () => {
+            hideMessage();
+            resetFullGame();
+          }
+        );
+
+        return;
+      }
+
+      hideMessage();
+      resetStage(true);
     }
 
     function getPosition(el) {
@@ -783,7 +1022,7 @@
     }
 
     function movePlayer(direction, amount) {
-      if (!state.gameStarted || state.gameOver || state.gameClear) return;
+      if (!state.gameStarted || state.gameOver || state.stageClear || state.allClear) return;
 
       const pos = getPosition(player);
       const yaw = getYaw();
@@ -815,7 +1054,7 @@
       let nz = pos.z + dz;
 
       nx = Math.max(-18, Math.min(18, nx));
-      nz = Math.max(-32, Math.min(10, nz));
+      nz = Math.max(-34, Math.min(10, nz));
 
       setPosition(player, {
         x: nx,
@@ -825,7 +1064,7 @@
     }
 
     function jump() {
-      if (!state.gameStarted || state.gameOver || state.gameClear) return;
+      if (!state.gameStarted || state.gameOver || state.stageClear || state.allClear) return;
       if (!state.onGround) return;
 
       state.yVelocity = 0.16;
@@ -834,29 +1073,28 @@
     }
 
     function updateJump() {
+      if (!state || state.onGround) return;
+
       const pos = getPosition(player);
+      state.yVelocity -= 0.009;
 
-      if (!state.onGround) {
-        state.yVelocity -= 0.009;
+      let ny = pos.y + state.yVelocity;
 
-        let ny = pos.y + state.yVelocity;
-
-        if (ny <= 1.6) {
-          ny = 1.6;
-          state.yVelocity = 0;
-          state.onGround = true;
-        }
-
-        setPosition(player, {
-          x: pos.x,
-          y: ny,
-          z: pos.z
-        });
+      if (ny <= 1.6) {
+        ny = 1.6;
+        state.yVelocity = 0;
+        state.onGround = true;
       }
+
+      setPosition(player, {
+        x: pos.x,
+        y: ny,
+        z: pos.z
+      });
     }
 
     function updateTimer(now) {
-      if (!state.gameStarted || state.gameOver || state.gameClear) return;
+      if (!state.gameStarted || state.gameOver || state.stageClear || state.allClear) return;
 
       if (now - lastTimeTick >= 1000) {
         lastTimeTick = now;
@@ -864,7 +1102,7 @@
 
         if (state.time <= 0) {
           state.time = 0;
-          endGame(false, "時間切れ！", "森の探索に時間がかかりすぎた。もう一度挑戦しよう。");
+          failStage("時間切れ！", "探索に時間がかかりすぎた。もう一度このステージに挑戦しよう。");
         }
 
         updateHUD();
@@ -892,9 +1130,10 @@
         }
 
         enemy.dataset.dir = dir;
+
         setPosition(enemy, {
           x: nx,
-          y: pos.y + Math.sin(performance.now() * 0.004) * 0.004,
+          y: 0.55 + Math.sin(performance.now() * 0.004) * 0.05,
           z: pos.z
         });
       });
@@ -909,19 +1148,17 @@
         const g = getPosition(gem);
         const d = distanceXZ(p, g);
 
-        if (d < 1.1) {
+        if (d < 1.15) {
           gem.dataset.collected = "true";
           gem.setAttribute("visible", "false");
-          state.gems += 1;
 
-          playTone(880, 0.08, "sine", 0.08);
-          setTimeout(() => playTone(1180, 0.08, "sine", 0.07), 70);
+          state.gems += 1;
+          playCollectSound();
 
           if (state.gems >= state.totalGems) {
             keyEntity.setAttribute("visible", "true");
-            showToast("金の鍵が出現した！");
-            playTone(660, 0.1, "triangle", 0.08);
-            setTimeout(() => playTone(990, 0.1, "triangle", 0.08), 120);
+            showToast("宝石コンプリート！鍵が出現した！");
+            playKeySound();
           } else {
             showToast("宝石を見つけた！ " + state.gems + " / " + state.totalGems);
           }
@@ -939,21 +1176,19 @@
       const p = getPosition(player);
       const k = getPosition(keyEntity);
 
-      if (distanceXZ(p, k) < 1.15) {
+      if (distanceXZ(p, k) < 1.2) {
         state.hasKey = true;
         keyEntity.setAttribute("visible", "false");
 
-        showToast("金の鍵を手に入れた！宝箱へ向かおう。");
-        playTone(523, 0.1, "sine", 0.08);
-        setTimeout(() => playTone(784, 0.1, "sine", 0.08), 100);
-        setTimeout(() => playTone(1046, 0.12, "sine", 0.08), 200);
-
+        showToast("鍵を手に入れた！宝箱に近づこう。");
+        playKeySound();
         updateHUD();
       }
     }
 
     function checkEnemyDamage() {
       const now = performance.now();
+
       if (now - lastDamageTime < 1200) return;
 
       const p = getPosition(player);
@@ -965,9 +1200,8 @@
           lastDamageTime = now;
           state.hp -= 1;
 
-          showToast("シャドウスライムに触れた！ HP -1");
-          playTone(180, 0.14, "sawtooth", 0.06);
-          playTone(120, 0.18, "sawtooth", 0.05);
+          showToast("敵に触れた！ HP -1");
+          playDamageSound();
 
           const pos = getPosition(player);
           setPosition(player, {
@@ -979,7 +1213,7 @@
           if (state.hp <= 0) {
             state.hp = 0;
             updateHUD();
-            endGame(false, "ゲームオーバー", "HPがなくなった。敵の動きを見て、タイミングよく進もう。");
+            failStage("ゲームオーバー", "HPがなくなった。敵の動きを見て、もう一度このステージに挑戦しよう。");
           }
 
           updateHUD();
@@ -988,34 +1222,31 @@
       }
     }
 
-    function openTreasure() {
-      if (!state.gameStarted || state.gameOver || state.gameClear) return;
+    function checkTreasureAutoGet() {
+      if (state.treasureGot) return;
+      if (state.hatching) return;
+      if (!state.hasKey) return;
+      if (!treasureEntity) return;
 
       const p = getPosition(player);
-      const treasurePos = { x: 0, y: 0, z: -24 };
+      const stage = stages[stageIndex];
 
-      if (distanceXZ(p, treasurePos) > 3.2) {
-        showToast("宝箱が遠い。もう少し近づこう。");
-        return;
+      const d = distanceXZ(p, stage.treasure);
+
+      if (d < 4.2) {
+        getTreasureAndHatch();
       }
+    }
 
-      if (state.gems < state.totalGems) {
-        showToast("宝石がまだ足りない。6個集めよう。");
-        return;
-      }
+    function getTreasureAndHatch() {
+      const stage = stages[stageIndex];
 
-      if (!state.hasKey) {
-        showToast("鍵がない。金の鍵を探そう。");
-        return;
-      }
+      state.treasureGot = true;
+      state.hatching = true;
+      state.treasures += 1;
 
-      if (state.chestOpen) {
-        showToast("宝箱はもう開いている。");
-        return;
-      }
-
-      state.chestOpen = true;
-      state.gameClear = true;
+      updateHUD();
+      showToast("お宝たまごを1個入手！孵化が始まった！");
 
       chestLid.setAttribute("animation", {
         property: "rotation",
@@ -1024,74 +1255,180 @@
         easing: "easeOutQuad"
       });
 
-      treasureLight.setAttribute("visible", "true");
-      treasureRing.setAttribute("visible", "true");
+      eggEntity.setAttribute("visible", "true");
+      eggEntity.setAttribute("animation__shake", {
+        property: "rotation",
+        from: "0 0 -10",
+        to: "0 0 10",
+        dir: "alternate",
+        loop: "true",
+        dur: "120",
+        easing: "easeInOutSine"
+      });
 
-      playVictorySound();
+      playHatchSound();
 
       setTimeout(() => {
-        endGame(true, "クリア！", "Soraの星を発見！<br>宝石を集め、敵を避けて、宝箱を開けた。");
-      }, 650);
+        eggEntity.setAttribute("visible", "false");
+        hatchPet(stage);
+      }, 1600);
+    }
+
+    function hatchPet(stage) {
+      hatchedPet = makeEntity("a-entity", {
+        position: `${stage.treasure.x} 0.75 ${stage.treasure.z + 1.15}`,
+        animation: "property: position; from: 0 0.55 0; to: 0 1.05 0; dir: alternate; loop: true; dur: 900; easing: easeInOutSine;"
+      });
+
+      makeEntity("a-sphere", {
+        position: "0 0.35 0",
+        radius: "0.42",
+        color: stage.petColor
+      }, hatchedPet);
+
+      makeEntity("a-sphere", {
+        position: "0 0.88 0",
+        radius: "0.28",
+        color: stage.petColor
+      }, hatchedPet);
+
+      makeEntity("a-sphere", {
+        position: "-0.1 0.94 -0.23",
+        radius: "0.035",
+        color: "#111111"
+      }, hatchedPet);
+
+      makeEntity("a-sphere", {
+        position: "0.1 0.94 -0.23",
+        radius: "0.035",
+        color: "#111111"
+      }, hatchedPet);
+
+      makeEntity("a-cone", {
+        position: "-0.22 1.12 0",
+        rotation: "0 0 -18",
+        "radius-bottom": "0.09",
+        height: "0.22",
+        color: stage.petColor
+      }, hatchedPet);
+
+      makeEntity("a-cone", {
+        position: "0.22 1.12 0",
+        rotation: "0 0 18",
+        "radius-bottom": "0.09",
+        height: "0.22",
+        color: stage.petColor
+      }, hatchedPet);
+
+      makeEntity("a-ring", {
+        position: "0 0.2 0",
+        rotation: "90 0 0",
+        "radius-inner": "0.48",
+        "radius-outer": "0.58",
+        color: "#ffffff",
+        animation: "property: rotation; to: 90 0 360; loop: true; dur: 1600; easing: linear;"
+      }, hatchedPet);
+
+      makeEntity("a-text", {
+        value: stage.petName + " が孵化！",
+        position: `${stage.treasure.x} 2.4 ${stage.treasure.z + 1.15}`,
+        align: "center",
+        color: "#ffffff",
+        width: "4"
+      });
+
+      state.pets += 1;
+      state.hatching = false;
+      state.stageClear = true;
+      state.gameStarted = false;
 
       updateHUD();
+      playHatchSound();
+
+      setTimeout(() => {
+        if (stageIndex < stages.length - 1) {
+          showMessage(
+            "ステージクリア！",
+            `お宝たまごから <strong>${stage.petName}</strong> が孵化しました！<br><br>入手お宝：${state.treasures}個<br>仲間：${state.pets}体`,
+            "次のステージへ",
+            nextStage
+          );
+        } else {
+          state.allClear = true;
+          updateHUD();
+
+          showMessage(
+            "完全クリア！",
+            `最後のお宝たまごから <strong>${stage.petName}</strong> が孵化しました！<br><br>入手お宝：${state.treasures}個<br>仲間：${state.pets}体<br><br>Sora Quest 完全クリア！`,
+            "最初から遊ぶ",
+            () => {
+              hideMessage();
+              resetFullGame();
+            }
+          );
+        }
+      }, 900);
     }
 
-    function playVictorySound() {
-      playTone(523, 0.12, "sine", 0.08);
-      setTimeout(() => playTone(659, 0.12, "sine", 0.08), 120);
-      setTimeout(() => playTone(784, 0.12, "sine", 0.08), 240);
-      setTimeout(() => playTone(1046, 0.22, "sine", 0.08), 360);
-    }
-
-    let toastTimer = null;
-
-    function showToast(text) {
-      quest.innerHTML = "<strong>INFO：</strong> " + text;
-
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        updateHUD();
-      }, 1700);
-    }
-
-    function endGame(clear, title, body) {
+    function failStage(title, body) {
       state.gameStarted = false;
-      state.gameOver = !clear;
-      state.gameClear = clear;
+      state.gameOver = true;
 
       updateHUD();
 
       showMessage(
         title,
-        body + "<br><br>宝石：" + state.gems + " / " + state.totalGems + "　残り時間：" + state.time + "秒",
-        "もう一度遊ぶ",
+        body + `<br><br>このステージからやり直します。`,
+        "このステージをやり直す",
         () => {
           hideMessage();
-          resetGame();
+          resetStage(true);
         }
       );
     }
 
+    function handleHint() {
+      enableAudio();
+
+      if (!state.gameStarted) {
+        showToast("スタートボタンを押してゲーム開始。");
+        return;
+      }
+
+      if (state.gems < state.totalGems) {
+        showToast("光る宝石に近づくと自動で回収できます。");
+        return;
+      }
+
+      if (!state.hasKey) {
+        showToast("鍵が出ています。鍵に近づくと自動で入手できます。");
+        return;
+      }
+
+      if (!state.treasureGot) {
+        showToast("宝箱に近づくだけでお宝たまごを入手できます。ボタンはいりません。");
+        return;
+      }
+
+      showToast("孵化を待とう！");
+    }
+
     function bindHoldButton(btn, key) {
-      btn.addEventListener("mousedown", () => moving[key] = true);
-      btn.addEventListener("mouseup", () => moving[key] = false);
-      btn.addEventListener("mouseleave", () => moving[key] = false);
-
-      btn.addEventListener("touchstart", (e) => {
+      const down = (e) => {
         e.preventDefault();
-        moving[key] = true;
         enableAudio();
-      }, { passive: false });
+        buttonMove[key] = true;
+      };
 
-      btn.addEventListener("touchend", (e) => {
+      const up = (e) => {
         e.preventDefault();
-        moving[key] = false;
-      }, { passive: false });
+        buttonMove[key] = false;
+      };
 
-      btn.addEventListener("touchcancel", (e) => {
-        e.preventDefault();
-        moving[key] = false;
-      }, { passive: false });
+      btn.addEventListener("pointerdown", down);
+      btn.addEventListener("pointerup", up);
+      btn.addEventListener("pointercancel", up);
+      btn.addEventListener("pointerleave", up);
     }
 
     bindHoldButton(forwardBtn, "forward");
@@ -1100,73 +1437,46 @@
     bindHoldButton(rightBtn, "right");
     bindHoldButton(runBtn, "run");
 
-    jumpBtn.addEventListener("click", () => {
-      enableAudio();
-      jump();
-    });
-
-    jumpBtn.addEventListener("touchstart", (e) => {
+    jumpBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       enableAudio();
       jump();
-    }, { passive: false });
-
-    openBtn.addEventListener("click", () => {
-      enableAudio();
-      openTreasure();
     });
 
-    openBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      enableAudio();
-      openTreasure();
-    }, { passive: false });
-
-    restartBtn.addEventListener("click", () => {
-      enableAudio();
-      hideMessage();
-      resetGame();
-    });
-
-    restartBtn.addEventListener("touchstart", (e) => {
+    restartBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       enableAudio();
       hideMessage();
-      resetGame();
-    }, { passive: false });
+      resetStage(true);
+    });
 
-    soundBtn.addEventListener("click", enableAudio);
-    soundBtn.addEventListener("touchstart", (e) => {
+    soundBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       enableAudio();
-    }, { passive: false });
+      playCollectSound();
+    });
 
-    messageBtn.addEventListener("touchstart", (e) => {
+    hintBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (typeof messageBtn.onclick === "function") {
-        messageBtn.onclick();
-      }
-    }, { passive: false });
+      handleHint();
+    });
 
     window.addEventListener("keydown", (e) => {
       keys[e.key.toLowerCase()] = true;
       enableAudio();
 
-      if (e.key === " " || e.key.toLowerCase() === "e") {
-        e.preventDefault();
-      }
-
       if (e.key === " ") {
+        e.preventDefault();
         jump();
-      }
-
-      if (e.key.toLowerCase() === "e") {
-        openTreasure();
       }
 
       if (e.key.toLowerCase() === "r") {
         hideMessage();
-        resetGame();
+        resetStage(true);
+      }
+
+      if (e.key.toLowerCase() === "h") {
+        handleHint();
       }
     });
 
@@ -1174,32 +1484,25 @@
       keys[e.key.toLowerCase()] = false;
     });
 
-    function handleKeyboardMovement(delta) {
-      if (keys["w"] || keys["arrowup"]) moving.forward = true;
-      else if (!forwardBtn.matches(":active")) moving.forward = false;
-
-      if (keys["s"] || keys["arrowdown"]) moving.back = true;
-      else if (!backBtn.matches(":active")) moving.back = false;
-
-      if (keys["a"] || keys["arrowleft"]) moving.left = true;
-      else if (!leftBtn.matches(":active")) moving.left = false;
-
-      if (keys["d"] || keys["arrowright"]) moving.right = true;
-      else if (!rightBtn.matches(":active")) moving.right = false;
-
-      moving.run = moving.run || keys["shift"];
+    function isMoving(name) {
+      if (name === "forward") return buttonMove.forward || keys["w"] || keys["arrowup"];
+      if (name === "back") return buttonMove.back || keys["s"] || keys["arrowdown"];
+      if (name === "left") return buttonMove.left || keys["a"] || keys["arrowleft"];
+      if (name === "right") return buttonMove.right || keys["d"] || keys["arrowright"];
+      if (name === "run") return buttonMove.run || keys["shift"];
+      return false;
     }
 
     function updateMovement(delta) {
-      if (!state.gameStarted || state.gameOver || state.gameClear) return;
+      if (!state.gameStarted || state.gameOver || state.stageClear || state.allClear) return;
 
-      const baseSpeed = moving.run ? 6.2 : 3.6;
-      const amount = baseSpeed * delta;
+      const speed = isMoving("run") ? 6.4 : 3.7;
+      const amount = speed * delta;
 
-      if (moving.forward) movePlayer("forward", amount);
-      if (moving.back) movePlayer("back", amount);
-      if (moving.left) movePlayer("left", amount);
-      if (moving.right) movePlayer("right", amount);
+      if (isMoving("forward")) movePlayer("forward", amount);
+      if (isMoving("back")) movePlayer("back", amount);
+      if (isMoving("left")) movePlayer("left", amount);
+      if (isMoving("right")) movePlayer("right", amount);
     }
 
     function gameLoop(now) {
@@ -1207,23 +1510,23 @@
       lastFrame = now;
 
       if (state) {
-        handleKeyboardMovement(delta);
         updateMovement(delta);
         updateJump();
         updateEnemies(delta);
         updateTimer(now);
 
-        if (state.gameStarted && !state.gameOver && !state.gameClear) {
+        if (state.gameStarted && !state.gameOver && !state.stageClear && !state.allClear) {
           checkGemCollection();
           checkKeyCollection();
           checkEnemyDamage();
+          checkTreasureAutoGet();
         }
       }
 
       requestAnimationFrame(gameLoop);
     }
 
-    resetGame();
+    resetFullGame();
     requestAnimationFrame(gameLoop);
   </script>
 </body>
