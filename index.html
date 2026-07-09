@@ -3,25 +3,99 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Sora カメラ診断</title>
+  <title>Sora AR App</title>
+
   <style>
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background: #111;
-      color: #fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overflow: hidden;
+      background: #000;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: white;
     }
 
     #camera {
+      position: fixed;
+      inset: 0;
       width: 100vw;
       height: 100vh;
       object-fit: cover;
       background: #000;
+      z-index: 1;
+    }
+
+    #arLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      perspective: 900px;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      left: 50%;
+      top: 45%;
+      transform: translate(-50%, -50%) rotateX(18deg) rotateY(-20deg);
+      transform-style: preserve-3d;
+      animation: float 2.4s ease-in-out infinite, spin 5s linear infinite;
+      filter: drop-shadow(0 0 18px rgba(255, 230, 80, 0.9));
+    }
+
+    .star::before {
+      content: "⭐";
+      font-size: 82px;
       display: block;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        margin-top: 0;
+      }
+      50% {
+        margin-top: -22px;
+      }
+    }
+
+    @keyframes spin {
+      0% {
+        transform: translate(-50%, -50%) rotateX(18deg) rotateY(0deg) rotateZ(0deg);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotateX(18deg) rotateY(360deg) rotateZ(360deg);
+      }
+    }
+
+    .portal {
+      position: absolute;
+      left: 50%;
+      top: 63%;
+      width: 160px;
+      height: 42px;
+      transform: translateX(-50%) rotateX(70deg);
+      border-radius: 50%;
+      border: 3px solid rgba(80, 200, 255, 0.9);
+      box-shadow:
+        0 0 20px rgba(80, 200, 255, 0.9),
+        inset 0 0 18px rgba(80, 200, 255, 0.6);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.65;
+        transform: translateX(-50%) rotateX(70deg) scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: translateX(-50%) rotateX(70deg) scale(1.15);
+      }
     }
 
     #panel {
@@ -29,12 +103,13 @@
       left: 12px;
       right: 12px;
       bottom: 12px;
-      z-index: 10;
-      background: rgba(0, 0, 0, 0.75);
-      border-radius: 16px;
+      z-index: 5;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
       padding: 14px;
       text-align: center;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
     }
 
     #status {
@@ -43,49 +118,109 @@
       margin-bottom: 12px;
     }
 
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
     button {
-      width: 100%;
-      max-width: 360px;
-      padding: 14px 18px;
+      padding: 13px 14px;
       border: none;
       border-radius: 999px;
-      background: #4aa3ff;
-      color: white;
+      font-size: 15px;
       font-weight: 700;
-      font-size: 16px;
+      color: white;
+      background: #4aa3ff;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     button:active {
-      transform: scale(0.98);
+      transform: scale(0.96);
+    }
+
+    #captureBtn {
+      background: #ffb02e;
+    }
+
+    #changeBtn {
+      background: #7c5cff;
+    }
+
+    #hideBtn {
+      background: #333;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .soraText {
+      position: absolute;
+      left: 50%;
+      top: 30%;
+      transform: translateX(-50%);
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow:
+        0 3px 8px rgba(0,0,0,0.8),
+        0 0 16px rgba(90,190,255,0.9);
+      letter-spacing: 0.05em;
+      animation: textFloat 2s ease-in-out infinite;
+    }
+
+    @keyframes textFloat {
+      0%, 100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      50% {
+        transform: translateX(-50%) translateY(-10px);
+      }
     }
   </style>
 </head>
+
 <body>
   <video id="camera" autoplay playsinline muted></video>
 
+  <div id="arLayer" class="hidden">
+    <div class="soraText">SORA AR</div>
+    <div class="star" id="star"></div>
+    <div class="portal"></div>
+  </div>
+
   <div id="panel">
     <div id="status">
-      黒画面の原因を調べます。<br>
-      まず「カメラを起動」を押してください。
+      カメラを起動すると、画面にAR風の星が出ます。
     </div>
-    <button id="startBtn">カメラを起動</button>
+
+    <div class="buttons">
+      <button id="startBtn">カメラ起動</button>
+      <button id="changeBtn">星の位置変更</button>
+      <button id="captureBtn">光る</button>
+      <button id="hideBtn">表示切替</button>
+    </div>
   </div>
 
   <script>
     const video = document.getElementById("camera");
     const statusBox = document.getElementById("status");
     const startBtn = document.getElementById("startBtn");
+    const changeBtn = document.getElementById("changeBtn");
+    const captureBtn = document.getElementById("captureBtn");
+    const hideBtn = document.getElementById("hideBtn");
+    const arLayer = document.getElementById("arLayer");
+    const star = document.getElementById("star");
+
+    let arVisible = true;
+    let started = false;
 
     async function startCamera() {
-      statusBox.innerHTML = "カメラ起動中...";
+      if (started) return;
 
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        statusBox.innerHTML =
-          "このブラウザはカメラ起動に対応していません。<br>" +
-          "Safari または Chrome で開いてください。";
-        return;
-      }
+      statusBox.innerHTML = "カメラ起動中...";
 
       try {
         let stream;
@@ -97,7 +232,7 @@
             },
             audio: false
           });
-        } catch (backCameraError) {
+        } catch (e) {
           stream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: false
@@ -108,25 +243,80 @@
 
         video.onloadedmetadata = () => {
           video.play();
-          statusBox.innerHTML =
-            "カメラ起動成功！<br>" +
-            "この画面にカメラ映像が出ていれば、GitHub Pagesとカメラ権限はOKです。";
-          startBtn.style.display = "none";
+          arLayer.classList.remove("hidden");
+          statusBox.innerHTML = "成功！カメラ画面にAR風の星が表示されています。";
+          started = true;
         };
-
       } catch (error) {
         statusBox.innerHTML =
-          "カメラ起動失敗。<br><br>" +
-          "エラー名：<br>" + error.name + "<br><br>" +
-          "内容：<br>" + error.message + "<br><br>" +
-          "確認：URLが https:// か、カメラ許可がブロックされていないか見てください。";
+          "カメラ起動失敗<br>" +
+          error.name + "<br>" +
+          error.message;
       }
+    }
+
+    function moveStarRandomly() {
+      if (!started) {
+        statusBox.innerHTML = "先にカメラを起動してください。";
+        return;
+      }
+
+      const x = 20 + Math.random() * 60;
+      const y = 25 + Math.random() * 45;
+
+      star.style.left = x + "%";
+      star.style.top = y + "%";
+
+      statusBox.innerHTML = "星の位置を変えました。";
+    }
+
+    function glowEffect() {
+      if (!started) {
+        statusBox.innerHTML = "先にカメラを起動してください。";
+        return;
+      }
+
+      star.style.filter = "drop-shadow(0 0 40px rgba(255,255,120,1)) drop-shadow(0 0 70px rgba(80,200,255,0.9))";
+      statusBox.innerHTML = "星が強く光りました！";
+
+      setTimeout(() => {
+        star.style.filter = "drop-shadow(0 0 18px rgba(255, 230, 80, 0.9))";
+      }, 800);
+    }
+
+    function toggleAR() {
+      if (!started) {
+        statusBox.innerHTML = "先にカメラを起動してください。";
+        return;
+      }
+
+      arVisible = !arVisible;
+      arLayer.style.display = arVisible ? "block" : "none";
+      statusBox.innerHTML = arVisible ? "AR表示オン" : "AR表示オフ";
     }
 
     startBtn.addEventListener("click", startCamera);
     startBtn.addEventListener("touchstart", function(e) {
       e.preventDefault();
       startCamera();
+    }, { passive: false });
+
+    changeBtn.addEventListener("click", moveStarRandomly);
+    changeBtn.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      moveStarRandomly();
+    }, { passive: false });
+
+    captureBtn.addEventListener("click", glowEffect);
+    captureBtn.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      glowEffect();
+    }, { passive: false });
+
+    hideBtn.addEventListener("click", toggleAR);
+    hideBtn.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      toggleAR();
     }, { passive: false });
   </script>
 </body>
