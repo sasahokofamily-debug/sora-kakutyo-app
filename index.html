@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>簡単WebAR - Hiroマーカー</title>
+  <title>Sora WebAR Test</title>
 
-  <!-- A-Frame 本体 -->
+  <!-- A-Frame 1.6.0 -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
-  <!-- AR.js：マーカー認識用 -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <!-- AR.js 3.4.7：マーカー認識用 -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
 
   <style>
     html, body {
       margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -21,63 +22,128 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    .info {
+    #status {
       position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      z-index: 10;
-      background: rgba(0, 0, 0, 0.65);
-      color: #fff;
-      padding: 12px 14px;
+      left: 10px;
+      right: 10px;
+      top: 10px;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.72);
+      color: white;
+      padding: 12px;
       border-radius: 12px;
       font-size: 14px;
-      line-height: 1.5;
-      text-align: center;
-      pointer-events: none;
+      line-height: 1.6;
     }
 
-    .info strong {
-      color: #ffdf5a;
+    #status strong {
+      color: #ffe066;
+    }
+
+    #hiro {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 9999;
+      background: rgba(255, 255, 255, 0.92);
+      color: #111;
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    #hiro a {
+      color: #0066cc;
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
-  <div class="info">
-    カメラを許可して、<strong>Hiroマーカー</strong>に向けてください。<br>
-    マーカーを認識すると赤い箱が表示されます。
+  <div id="status">
+    <strong>Sora WebAR 診断中</strong><br>
+    1. カメラ許可を押してください<br>
+    2. Hiroマーカーをカメラに映してください<br>
+    3. 認識すると「マーカー発見！」と出ます
+  </div>
+
+  <div id="hiro">
+    Hiroマーカーを別画面か紙で表示してください。<br>
+    検索ワード：<strong>AR.js Hiro marker</strong>
   </div>
 
   <a-scene
     embedded
     vr-mode-ui="enabled: false"
-    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
     arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
   >
 
-    <!-- Hiroマーカー -->
-    <a-marker preset="hiro">
+    <a-marker id="hiroMarker" preset="hiro">
       <a-box
         position="0 0.5 0"
         scale="1 1 1"
-        color="red"
-        animation="property: rotation; to: 0 360 0; loop: true; dur: 3000; easing: linear;"
+        color="#ff3333"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 2500; easing: linear;"
       ></a-box>
+
+      <a-sphere
+        position="0 1.35 0"
+        radius="0.28"
+        color="#44aaff"
+        animation="property: position; dir: alternate; to: 0 1.8 0; loop: true; dur: 900; easing: easeInOutSine;"
+      ></a-sphere>
 
       <a-text
         value="SORA AR"
-        position="-0.8 1.3 0"
+        position="0 0.05 -1"
         rotation="-90 0 0"
-        color="#ffffff"
         align="center"
+        color="#ffffff"
         width="4"
       ></a-text>
     </a-marker>
 
-    <!-- これがないとカメラ視点が動かない -->
     <a-entity camera></a-entity>
-
   </a-scene>
+
+  <script>
+    const statusBox = document.getElementById("status");
+    const marker = document.getElementById("hiroMarker");
+
+    function setStatus(text) {
+      statusBox.innerHTML = text;
+    }
+
+    window.addEventListener("load", () => {
+      const aframeOK = !!window.AFRAME;
+      const arjsMaybeOK = document.querySelector("a-scene") !== null;
+
+      setStatus(`
+        <strong>Sora WebAR 診断</strong><br>
+        A-Frame：${aframeOK ? "読み込みOK" : "読み込み失敗"}<br>
+        ARシーン：${arjsMaybeOK ? "作成OK" : "作成失敗"}<br>
+        カメラ許可が出たら「許可」を押してください。<br>
+        Hiroマーカーを映すと認識します。
+      `);
+    });
+
+    marker.addEventListener("markerFound", () => {
+      setStatus(`
+        <strong>マーカー発見！</strong><br>
+        Hiroマーカーを認識しています。<br>
+        赤い箱と青い球が出ていれば成功です。
+      `);
+    });
+
+    marker.addEventListener("markerLost", () => {
+      setStatus(`
+        <strong>マーカーを見失いました</strong><br>
+        もう一度Hiroマーカーを明るい場所で正面から映してください。
+      `);
+    });
+  </script>
 </body>
 </html>
