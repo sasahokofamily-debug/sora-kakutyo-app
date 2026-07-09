@@ -1,149 +1,133 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Sora WebAR Test</title>
-
-  <!-- A-Frame 1.6.0 -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-
-  <!-- AR.js 3.4.7：マーカー認識用 -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Sora カメラ診断</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden;
-      background: #000;
+      background: #111;
+      color: #fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    #camera {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      background: #000;
+      display: block;
+    }
+
+    #panel {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
 
     #status {
-      position: fixed;
-      left: 10px;
-      right: 10px;
-      top: 10px;
-      z-index: 9999;
-      background: rgba(0, 0, 0, 0.72);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
       font-size: 14px;
       line-height: 1.6;
+      margin-bottom: 12px;
     }
 
-    #status strong {
-      color: #ffe066;
+    button {
+      width: 100%;
+      max-width: 360px;
+      padding: 14px 18px;
+      border: none;
+      border-radius: 999px;
+      background: #4aa3ff;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
     }
 
-    #hiro {
-      position: fixed;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      z-index: 9999;
-      background: rgba(255, 255, 255, 0.92);
-      color: #111;
-      padding: 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      text-align: center;
-    }
-
-    #hiro a {
-      color: #0066cc;
-      font-weight: bold;
+    button:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
-
 <body>
-  <div id="status">
-    <strong>Sora WebAR 診断中</strong><br>
-    1. カメラ許可を押してください<br>
-    2. Hiroマーカーをカメラに映してください<br>
-    3. 認識すると「マーカー発見！」と出ます
+  <video id="camera" autoplay playsinline muted></video>
+
+  <div id="panel">
+    <div id="status">
+      黒画面の原因を調べます。<br>
+      まず「カメラを起動」を押してください。
+    </div>
+    <button id="startBtn">カメラを起動</button>
   </div>
-
-  <div id="hiro">
-    Hiroマーカーを別画面か紙で表示してください。<br>
-    検索ワード：<strong>AR.js Hiro marker</strong>
-  </div>
-
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
-    arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
-  >
-
-    <a-marker id="hiroMarker" preset="hiro">
-      <a-box
-        position="0 0.5 0"
-        scale="1 1 1"
-        color="#ff3333"
-        animation="property: rotation; to: 0 360 0; loop: true; dur: 2500; easing: linear;"
-      ></a-box>
-
-      <a-sphere
-        position="0 1.35 0"
-        radius="0.28"
-        color="#44aaff"
-        animation="property: position; dir: alternate; to: 0 1.8 0; loop: true; dur: 900; easing: easeInOutSine;"
-      ></a-sphere>
-
-      <a-text
-        value="SORA AR"
-        position="0 0.05 -1"
-        rotation="-90 0 0"
-        align="center"
-        color="#ffffff"
-        width="4"
-      ></a-text>
-    </a-marker>
-
-    <a-entity camera></a-entity>
-  </a-scene>
 
   <script>
+    const video = document.getElementById("camera");
     const statusBox = document.getElementById("status");
-    const marker = document.getElementById("hiroMarker");
+    const startBtn = document.getElementById("startBtn");
 
-    function setStatus(text) {
-      statusBox.innerHTML = text;
+    async function startCamera() {
+      statusBox.innerHTML = "カメラ起動中...";
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusBox.innerHTML =
+          "このブラウザはカメラ起動に対応していません。<br>" +
+          "Safari または Chrome で開いてください。";
+        return;
+      }
+
+      try {
+        let stream;
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" }
+            },
+            audio: false
+          });
+        } catch (backCameraError) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        }
+
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () => {
+          video.play();
+          statusBox.innerHTML =
+            "カメラ起動成功！<br>" +
+            "この画面にカメラ映像が出ていれば、GitHub Pagesとカメラ権限はOKです。";
+          startBtn.style.display = "none";
+        };
+
+      } catch (error) {
+        statusBox.innerHTML =
+          "カメラ起動失敗。<br><br>" +
+          "エラー名：<br>" + error.name + "<br><br>" +
+          "内容：<br>" + error.message + "<br><br>" +
+          "確認：URLが https:// か、カメラ許可がブロックされていないか見てください。";
+      }
     }
 
-    window.addEventListener("load", () => {
-      const aframeOK = !!window.AFRAME;
-      const arjsMaybeOK = document.querySelector("a-scene") !== null;
-
-      setStatus(`
-        <strong>Sora WebAR 診断</strong><br>
-        A-Frame：${aframeOK ? "読み込みOK" : "読み込み失敗"}<br>
-        ARシーン：${arjsMaybeOK ? "作成OK" : "作成失敗"}<br>
-        カメラ許可が出たら「許可」を押してください。<br>
-        Hiroマーカーを映すと認識します。
-      `);
-    });
-
-    marker.addEventListener("markerFound", () => {
-      setStatus(`
-        <strong>マーカー発見！</strong><br>
-        Hiroマーカーを認識しています。<br>
-        赤い箱と青い球が出ていれば成功です。
-      `);
-    });
-
-    marker.addEventListener("markerLost", () => {
-      setStatus(`
-        <strong>マーカーを見失いました</strong><br>
-        もう一度Hiroマーカーを明るい場所で正面から映してください。
-      `);
-    });
+    startBtn.addEventListener("click", startCamera);
+    startBtn.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      startCamera();
+    }, { passive: false });
   </script>
 </body>
 </html>
