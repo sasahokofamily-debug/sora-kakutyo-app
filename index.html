@@ -3,13 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Sora 本物AR</title>
-
-  <!-- A-Frame：AR.js 3.4.7 と合わせる -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-
-  <!-- AR.js：マーカー型AR用 -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
+  <title>Sora マーカーなしAR</title>
 
   <style>
     html, body {
@@ -19,53 +13,44 @@
       height: 100%;
       overflow: hidden;
       background: #000;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    #startScreen {
+    #ui {
       position: fixed;
       inset: 0;
-      z-index: 99999;
+      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: center;
-      background:
-        radial-gradient(circle at top, rgba(90, 180, 255, 0.28), transparent 36%),
-        linear-gradient(180deg, #06101f, #000);
-      padding: 22px;
+      pointer-events: none;
+      padding: 20px;
       box-sizing: border-box;
-      text-align: center;
     }
 
-    .startCard {
-      width: min(430px, 100%);
-      background: rgba(255, 255, 255, 0.08);
+    #card {
+      width: min(440px, 100%);
+      background: rgba(0, 0, 0, 0.72);
       border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 24px;
-      padding: 24px 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
-      backdrop-filter: blur(12px);
+      padding: 22px 18px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
     }
 
     h1 {
       margin: 0 0 10px;
-      font-size: 26px;
-      letter-spacing: 0.03em;
+      font-size: 25px;
     }
 
-    .lead {
-      margin: 0 0 18px;
+    p {
+      margin: 0 0 14px;
       font-size: 14px;
       line-height: 1.7;
       color: rgba(255,255,255,0.82);
-    }
-
-    .note {
-      margin-top: 14px;
-      font-size: 12px;
-      line-height: 1.6;
-      color: rgba(255,255,255,0.68);
     }
 
     button {
@@ -73,6 +58,7 @@
       border: none;
       border-radius: 999px;
       padding: 15px 18px;
+      margin-top: 10px;
       font-size: 17px;
       font-weight: 800;
       color: #fff;
@@ -82,8 +68,19 @@
       touch-action: manipulation;
     }
 
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
     button:active {
       transform: scale(0.98);
+    }
+
+    #fakeBtn {
+      background: linear-gradient(135deg, #ffb02e, #ff5c7c);
+      display: none;
     }
 
     #status {
@@ -91,27 +88,26 @@
       left: 10px;
       right: 10px;
       top: 10px;
-      z-index: 9999;
+      z-index: 30;
       background: rgba(0,0,0,0.72);
       border-radius: 14px;
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.55;
-      color: #fff;
-      pointer-events: none;
       display: none;
+      pointer-events: none;
     }
 
     #status strong {
       color: #ffe066;
     }
 
-    #markerHelp {
+    #hint {
       position: fixed;
       left: 10px;
       right: 10px;
       bottom: 10px;
-      z-index: 9999;
+      z-index: 30;
       background: rgba(255,255,255,0.92);
       color: #111;
       border-radius: 14px;
@@ -120,16 +116,50 @@
       line-height: 1.55;
       text-align: center;
       display: none;
+      pointer-events: none;
     }
 
-    #markerHelp strong {
-      color: #0066cc;
-    }
-
-    #arRoot {
+    #fakeCamera {
       position: fixed;
       inset: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      background: #000;
+      display: none;
       z-index: 1;
+    }
+
+    #fakeLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      display: none;
+      pointer-events: auto;
+    }
+
+    .fakeTreasure {
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      transform: translate(-50%, -50%);
+      font-size: 78px;
+      filter: drop-shadow(0 0 18px rgba(255,220,80,0.95));
+      animation: float 1.8s ease-in-out infinite;
+      user-select: none;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translate(-50%, -50%) translateY(0) scale(1);
+      }
+      50% {
+        transform: translate(-50%, -50%) translateY(-18px) scale(1.08);
+      }
+    }
+
+    canvas {
+      display: block;
     }
 
     .hidden {
@@ -139,186 +169,461 @@
 </head>
 
 <body>
-  <div id="startScreen">
-    <div class="startCard">
-      <h1>Sora 本物AR</h1>
-      <p class="lead">
-        カメラを起動して、Hiroマーカーを映すと<br>
-        マーカーの上に宝箱と星が出ます。
+  <video id="fakeCamera" autoplay playsinline muted></video>
+  <div id="fakeLayer"></div>
+
+  <div id="ui">
+    <div id="card">
+      <h1>Sora マーカーなしAR</h1>
+      <p>
+        Hiroマーカーなしで、床を認識して宝箱を置くARです。<br>
+        対応端末では「AR開始」が使えます。
       </p>
 
-      <button id="startBtn">ARを開始する</button>
+      <button id="startBtn" disabled>対応確認中...</button>
+      <button id="fakeBtn">非対応端末用：AR風で試す</button>
 
-      <div class="note">
-        ※ 別のスマホ・PC・紙に Hiroマーカーを表示して、<br>
-        このスマホのカメラで映してください。<br>
-        検索ワード：AR.js Hiro marker
-      </div>
+      <p id="supportText" style="margin-top:14px;">
+        WebXR対応状況を確認しています。
+      </p>
     </div>
   </div>
 
-  <div id="status">
-    <strong>AR準備中...</strong><br>
-    カメラ許可が出たら「許可」を押してください。
+  <div id="status"></div>
+
+  <div id="hint">
+    スマホをゆっくり床に向けて動かしてください。<br>
+    白い輪が出たら、画面をタップして宝箱を置けます。
   </div>
 
-  <div id="markerHelp">
-    <strong>Hiroマーカー</strong>をカメラに映してください。<br>
-    認識すると宝箱・星・文字がマーカーの上に出ます。
-  </div>
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js";
 
-  <div id="arRoot"></div>
-
-  <script>
+    const ui = document.getElementById("ui");
+    const card = document.getElementById("card");
     const startBtn = document.getElementById("startBtn");
-    const startScreen = document.getElementById("startScreen");
+    const fakeBtn = document.getElementById("fakeBtn");
+    const supportText = document.getElementById("supportText");
     const statusBox = document.getElementById("status");
-    const markerHelp = document.getElementById("markerHelp");
-    const arRoot = document.getElementById("arRoot");
+    const hint = document.getElementById("hint");
+    const fakeCamera = document.getElementById("fakeCamera");
+    const fakeLayer = document.getElementById("fakeLayer");
 
-    let arStarted = false;
+    let scene, camera, renderer;
+    let controller;
+    let reticle;
+    let hitTestSource = null;
+    let hitTestSourceRequested = false;
+    let currentSession = null;
+    let placedCount = 0;
+    let lastStatus = "";
+
+    initThree();
+    checkWebXRSupport();
 
     function setStatus(html) {
-      statusBox.innerHTML = html;
+      if (lastStatus === html) return;
+      lastStatus = html;
       statusBox.style.display = "block";
+      statusBox.innerHTML = html;
     }
 
-    function startAR() {
-      if (arStarted) return;
-      arStarted = true;
+    function initThree() {
+      scene = new THREE.Scene();
 
-      startScreen.classList.add("hidden");
-      markerHelp.style.display = "block";
-
-      setStatus(
-        "<strong>AR起動中...</strong><br>" +
-        "カメラ許可が出たら許可してください。<br>" +
-        "映像が出たらHiroマーカーに向けてください。"
+      camera = new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        0.01,
+        30
       );
 
-      arRoot.innerHTML = `
-        <a-scene
-          embedded
-          vr-mode-ui="enabled: false"
-          renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
-          arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
-        >
-          <a-marker
-            id="hiroMarker"
-            preset="hiro"
-            emitevents="true"
-            smooth="true"
-            smooth-count="10"
-            smooth-tolerance="0.01"
-            smooth-threshold="5"
-          >
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+      });
 
-            <!-- 地面の光る円 -->
-            <a-torus
-              position="0 0.03 0"
-              rotation="90 0 0"
-              radius="0.72"
-              radius-tubular="0.035"
-              color="#4dd8ff"
-              animation="property: rotation; to: 90 0 360; loop: true; dur: 2600; easing: linear;"
-            ></a-torus>
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true;
 
-            <!-- 宝箱っぽい土台 -->
-            <a-box
-              position="0 0.22 0"
-              scale="0.9 0.36 0.55"
-              color="#8B4513"
-            ></a-box>
+      document.body.appendChild(renderer.domElement);
 
-            <!-- 宝箱のふた -->
-            <a-box
-              position="0 0.48 0"
-              scale="0.95 0.22 0.6"
-              color="#B06A2B"
-              animation="property: rotation; from: 0 0 0; to: -18 0 0; dir: alternate; loop: true; dur: 900; easing: easeInOutSine;"
-            ></a-box>
+      const ambientLight = new THREE.HemisphereLight(0xffffff, 0x444444, 2.2);
+      scene.add(ambientLight);
 
-            <!-- 金色ライン -->
-            <a-box
-              position="0 0.55 -0.31"
-              scale="1.02 0.08 0.04"
-              color="#FFD75A"
-            ></a-box>
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+      dirLight.position.set(2, 4, 3);
+      scene.add(dirLight);
 
-            <a-box
-              position="0 0.24 -0.31"
-              scale="1.02 0.07 0.04"
-              color="#FFD75A"
-            ></a-box>
+      const ringGeometry = new THREE.RingGeometry(0.16, 0.22, 48);
+      ringGeometry.rotateX(-Math.PI / 2);
 
-            <!-- 鍵穴 -->
-            <a-box
-              position="0 0.36 -0.34"
-              scale="0.13 0.18 0.04"
-              color="#222"
-            ></a-box>
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.9
+      });
 
-            <!-- 浮かぶ星 -->
-            <a-sphere
-              position="0 1.12 0"
-              radius="0.18"
-              color="#fff176"
-              animation="property: position; from: 0 1.02 0; to: 0 1.34 0; dir: alternate; loop: true; dur: 850; easing: easeInOutSine;"
-            ></a-sphere>
+      reticle = new THREE.Mesh(ringGeometry, ringMaterial);
+      reticle.matrixAutoUpdate = false;
+      reticle.visible = false;
+      scene.add(reticle);
 
-            <a-ring
-              position="0 1.12 0"
-              rotation="90 0 0"
-              radius-inner="0.22"
-              radius-outer="0.27"
-              color="#ffffff"
-              animation="property: rotation; to: 90 0 360; loop: true; dur: 1600; easing: linear;"
-            ></a-ring>
+      controller = renderer.xr.getController(0);
+      controller.addEventListener("select", placeTreasure);
+      scene.add(controller);
 
-            <!-- 文字 -->
-            <a-text
-              value="SORA TREASURE"
-              position="0 0.05 -0.9"
-              rotation="-90 0 0"
-              align="center"
-              width="3.2"
-              color="#ffffff"
-            ></a-text>
+      window.addEventListener("resize", onWindowResize);
+    }
 
-          </a-marker>
+    async function checkWebXRSupport() {
+      if (!window.isSecureContext) {
+        startBtn.disabled = true;
+        startBtn.textContent = "HTTPSで開いてください";
+        supportText.innerHTML =
+          "このARは https:// のページでないと動きません。GitHub PagesのURLで開いてください。";
+        fakeBtn.style.display = "block";
+        return;
+      }
 
-          <a-entity camera></a-entity>
-        </a-scene>
-      `;
+      if (!navigator.xr) {
+        startBtn.disabled = true;
+        startBtn.textContent = "WebXR非対応";
+        supportText.innerHTML =
+          "このブラウザは WebXR に対応していません。iPhone Safariでは本物のマーカーなしARが動かないことが多いです。";
+        fakeBtn.style.display = "block";
+        return;
+      }
 
-      setTimeout(() => {
-        const marker = document.getElementById("hiroMarker");
+      try {
+        const supported = await navigator.xr.isSessionSupported("immersive-ar");
 
-        if (marker) {
-          marker.addEventListener("markerFound", () => {
-            setStatus(
-              "<strong>マーカー発見！</strong><br>" +
-              "宝箱が出ていれば成功です。"
-            );
-            markerHelp.style.display = "none";
+        if (supported) {
+          startBtn.disabled = false;
+          startBtn.textContent = "マーカーなしAR開始";
+          supportText.innerHTML =
+            "この端末は immersive-ar に対応しています。床認識ARを開始できます。";
+        } else {
+          startBtn.disabled = true;
+          startBtn.textContent = "本物AR非対応";
+          supportText.innerHTML =
+            "この端末では immersive-ar が使えません。Android Chrome＋ARCore対応端末だと動く可能性が高いです。";
+          fakeBtn.style.display = "block";
+        }
+      } catch (error) {
+        startBtn.disabled = true;
+        startBtn.textContent = "対応確認失敗";
+        supportText.innerHTML =
+          "WebXRの対応確認でエラーが出ました。<br>" + error.message;
+        fakeBtn.style.display = "block";
+      }
+    }
+
+    async function startAR() {
+      try {
+        setStatus(
+          "<strong>AR起動中...</strong><br>カメラ許可が出たら許可してください。"
+        );
+
+        const sessionInit = {
+          requiredFeatures: ["hit-test"],
+          optionalFeatures: ["dom-overlay", "local-floor"],
+          domOverlay: { root: document.body }
+        };
+
+        const session = await navigator.xr.requestSession("immersive-ar", sessionInit);
+        currentSession = session;
+
+        session.addEventListener("end", onSessionEnd);
+
+        await renderer.xr.setSession(session);
+
+        ui.classList.add("hidden");
+        hint.style.display = "block";
+
+        renderer.setAnimationLoop(render);
+
+        setStatus(
+          "<strong>AR起動成功</strong><br>床に向けてゆっくり動かしてください。白い輪が出たらタップ。"
+        );
+      } catch (error) {
+        setStatus(
+          "<strong>AR起動失敗</strong><br>" +
+          error.name + "<br>" +
+          error.message + "<br><br>" +
+          "端末・ブラウザがマーカーなしARに対応していない可能性があります。"
+        );
+        ui.classList.remove("hidden");
+        fakeBtn.style.display = "block";
+      }
+    }
+
+    function onSessionEnd() {
+      hitTestSourceRequested = false;
+      hitTestSource = null;
+      currentSession = null;
+      reticle.visible = false;
+      renderer.setAnimationLoop(null);
+      ui.classList.remove("hidden");
+      hint.style.display = "none";
+      setStatus("<strong>AR終了</strong><br>もう一度開始できます。");
+    }
+
+    function render(timestamp, frame) {
+      if (frame) {
+        const referenceSpace = renderer.xr.getReferenceSpace();
+        const session = renderer.xr.getSession();
+
+        if (!hitTestSourceRequested) {
+          session.requestReferenceSpace("viewer").then((viewerSpace) => {
+            session.requestHitTestSource({ space: viewerSpace }).then((source) => {
+              hitTestSource = source;
+            });
           });
 
-          marker.addEventListener("markerLost", () => {
+          session.addEventListener("end", () => {
+            hitTestSourceRequested = false;
+            hitTestSource = null;
+          });
+
+          hitTestSourceRequested = true;
+        }
+
+        if (hitTestSource) {
+          const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+          if (hitTestResults.length > 0) {
+            const hit = hitTestResults[0];
+            const pose = hit.getPose(referenceSpace);
+
+            reticle.visible = true;
+            reticle.matrix.fromArray(pose.transform.matrix);
+
             setStatus(
-              "<strong>マーカーを見失いました</strong><br>" +
-              "もう一度Hiroマーカーを正面から映してください。"
+              "<strong>床を検出中</strong><br>白い輪の場所に宝箱を置けます。画面をタップしてください。"
             );
-            markerHelp.style.display = "block";
+          } else {
+            reticle.visible = false;
+            setStatus(
+              "<strong>床を探しています</strong><br>床や机に向けて、スマホをゆっくり左右に動かしてください。"
+            );
+          }
+        }
+      }
+
+      rotateTreasures();
+      renderer.render(scene, camera);
+    }
+
+    function placeTreasure() {
+      if (!reticle.visible) {
+        setStatus(
+          "<strong>まだ置けません</strong><br>白い輪が出るまで床に向けて動かしてください。"
+        );
+        return;
+      }
+
+      const treasure = createTreasure();
+      treasure.position.setFromMatrixPosition(reticle.matrix);
+      treasure.quaternion.setFromRotationMatrix(reticle.matrix);
+
+      scene.add(treasure);
+      placedCount++;
+
+      setStatus(
+        "<strong>宝箱を置きました！</strong><br>設置数：" + placedCount + "<br>別の場所をタップすると追加できます。"
+      );
+    }
+
+    function createTreasure() {
+      const group = new THREE.Group();
+      group.userData.spin = Math.random() * Math.PI * 2;
+
+      const baseMat = new THREE.MeshStandardMaterial({
+        color: 0x8b4513,
+        roughness: 0.55,
+        metalness: 0.15
+      });
+
+      const lidMat = new THREE.MeshStandardMaterial({
+        color: 0xb06a2b,
+        roughness: 0.45,
+        metalness: 0.12
+      });
+
+      const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xffd75a,
+        roughness: 0.25,
+        metalness: 0.75
+      });
+
+      const darkMat = new THREE.MeshStandardMaterial({
+        color: 0x111111,
+        roughness: 0.6,
+        metalness: 0.1
+      });
+
+      const glowMat = new THREE.MeshStandardMaterial({
+        color: 0xfff176,
+        emissive: 0xffd54f,
+        emissiveIntensity: 1.2,
+        roughness: 0.2,
+        metalness: 0.2
+      });
+
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(0.55, 0.25, 0.38),
+        baseMat
+      );
+      base.position.y = 0.14;
+      group.add(base);
+
+      const lid = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.16, 0.42),
+        lidMat
+      );
+      lid.position.y = 0.36;
+      lid.rotation.x = -0.18;
+      group.add(lid);
+
+      const frontGold1 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.62, 0.045, 0.035),
+        goldMat
+      );
+      frontGold1.position.set(0, 0.23, -0.215);
+      group.add(frontGold1);
+
+      const frontGold2 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.62, 0.05, 0.035),
+        goldMat
+      );
+      frontGold2.position.set(0, 0.43, -0.23);
+      group.add(frontGold2);
+
+      const lock = new THREE.Mesh(
+        new THREE.BoxGeometry(0.09, 0.12, 0.035),
+        darkMat
+      );
+      lock.position.set(0, 0.31, -0.245);
+      group.add(lock);
+
+      const coin1 = new THREE.Mesh(
+        new THREE.SphereGeometry(0.055, 24, 16),
+        goldMat
+      );
+      coin1.position.set(-0.14, 0.52, 0);
+      group.add(coin1);
+
+      const coin2 = new THREE.Mesh(
+        new THREE.SphereGeometry(0.055, 24, 16),
+        goldMat
+      );
+      coin2.position.set(0.08, 0.55, 0.04);
+      group.add(coin2);
+
+      const star = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.12),
+        glowMat
+      );
+      star.position.set(0, 0.78, 0);
+      star.userData.isStar = true;
+      group.add(star);
+
+      const pointLight = new THREE.PointLight(0xfff176, 1.8, 1.8);
+      pointLight.position.set(0, 0.75, 0);
+      group.add(pointLight);
+
+      group.scale.setScalar(1);
+      return group;
+    }
+
+    function rotateTreasures() {
+      scene.traverse((obj) => {
+        if (obj.userData && obj.userData.isStar) {
+          obj.rotation.x += 0.025;
+          obj.rotation.y += 0.035;
+          obj.position.y = 0.78 + Math.sin(performance.now() * 0.004) * 0.04;
+        }
+      });
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    async function startFakeAR() {
+      ui.classList.add("hidden");
+      statusBox.style.display = "block";
+      hint.style.display = "none";
+
+      setStatus(
+        "<strong>AR風モード</strong><br>この端末は本物の床認識ARに非対応のため、カメラ背景に宝箱を重ねます。"
+      );
+
+      fakeCamera.style.display = "block";
+      fakeLayer.style.display = "block";
+      renderer.domElement.style.display = "none";
+
+      try {
+        let stream;
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: false
+          });
+        } catch (e) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
           });
         }
-      }, 1000);
+
+        fakeCamera.srcObject = stream;
+        fakeCamera.onloadedmetadata = () => fakeCamera.play();
+
+        addFakeTreasure(window.innerWidth / 2, window.innerHeight * 0.55);
+
+        fakeLayer.addEventListener("click", (e) => {
+          addFakeTreasure(e.clientX, e.clientY);
+        });
+
+        fakeLayer.addEventListener("touchstart", (e) => {
+          const t = e.touches[0];
+          if (t) addFakeTreasure(t.clientX, t.clientY);
+        }, { passive: true });
+
+      } catch (error) {
+        setStatus(
+          "<strong>カメラ起動失敗</strong><br>" +
+          error.name + "<br>" +
+          error.message
+        );
+      }
+    }
+
+    function addFakeTreasure(x, y) {
+      const el = document.createElement("div");
+      el.className = "fakeTreasure";
+      el.textContent = "💎";
+      el.style.left = x + "px";
+      el.style.top = y + "px";
+      fakeLayer.appendChild(el);
     }
 
     startBtn.addEventListener("click", startAR);
-
-    startBtn.addEventListener("touchstart", function(e) {
+    startBtn.addEventListener("touchstart", (e) => {
       e.preventDefault();
       startAR();
+    }, { passive: false });
+
+    fakeBtn.addEventListener("click", startFakeAR);
+    fakeBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      startFakeAR();
     }, { passive: false });
   </script>
 </body>
