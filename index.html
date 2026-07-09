@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Sora AR App</title>
+  <title>Sora 本物AR</title>
+
+  <!-- A-Frame：AR.js 3.4.7 と合わせる -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+  <!-- AR.js：マーカー型AR用 -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
 
   <style>
     html, body {
@@ -14,309 +20,305 @@
       overflow: hidden;
       background: #000;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: white;
+      color: #fff;
     }
 
-    #camera {
+    #startScreen {
       position: fixed;
       inset: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      background: #000;
-      z-index: 1;
-    }
-
-    #arLayer {
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      perspective: 900px;
-      overflow: hidden;
-    }
-
-    .star {
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      left: 50%;
-      top: 45%;
-      transform: translate(-50%, -50%) rotateX(18deg) rotateY(-20deg);
-      transform-style: preserve-3d;
-      animation: float 2.4s ease-in-out infinite, spin 5s linear infinite;
-      filter: drop-shadow(0 0 18px rgba(255, 230, 80, 0.9));
-    }
-
-    .star::before {
-      content: "⭐";
-      font-size: 82px;
-      display: block;
-    }
-
-    @keyframes float {
-      0%, 100% {
-        margin-top: 0;
-      }
-      50% {
-        margin-top: -22px;
-      }
-    }
-
-    @keyframes spin {
-      0% {
-        transform: translate(-50%, -50%) rotateX(18deg) rotateY(0deg) rotateZ(0deg);
-      }
-      100% {
-        transform: translate(-50%, -50%) rotateX(18deg) rotateY(360deg) rotateZ(360deg);
-      }
-    }
-
-    .portal {
-      position: absolute;
-      left: 50%;
-      top: 63%;
-      width: 160px;
-      height: 42px;
-      transform: translateX(-50%) rotateX(70deg);
-      border-radius: 50%;
-      border: 3px solid rgba(80, 200, 255, 0.9);
-      box-shadow:
-        0 0 20px rgba(80, 200, 255, 0.9),
-        inset 0 0 18px rgba(80, 200, 255, 0.6);
-      animation: pulse 1.6s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 0.65;
-        transform: translateX(-50%) rotateX(70deg) scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: translateX(-50%) rotateX(70deg) scale(1.15);
-      }
-    }
-
-    #panel {
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      z-index: 5;
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(10px);
-      border-radius: 18px;
-      padding: 14px;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at top, rgba(90, 180, 255, 0.28), transparent 36%),
+        linear-gradient(180deg, #06101f, #000);
+      padding: 22px;
+      box-sizing: border-box;
       text-align: center;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
     }
 
-    #status {
+    .startCard {
+      width: min(430px, 100%);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      padding: 24px 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 26px;
+      letter-spacing: 0.03em;
+    }
+
+    .lead {
+      margin: 0 0 18px;
       font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 12px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.82);
     }
 
-    .buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .note {
+      margin-top: 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.68);
     }
 
     button {
-      padding: 13px 14px;
+      width: 100%;
       border: none;
       border-radius: 999px;
-      font-size: 15px;
-      font-weight: 700;
-      color: white;
-      background: #4aa3ff;
+      padding: 15px 18px;
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #34a7ff, #7c5cff);
+      box-shadow: 0 10px 26px rgba(67, 147, 255, 0.42);
       cursor: pointer;
       touch-action: manipulation;
     }
 
     button:active {
-      transform: scale(0.96);
+      transform: scale(0.98);
     }
 
-    #captureBtn {
-      background: #ffb02e;
-    }
-
-    #changeBtn {
-      background: #7c5cff;
-    }
-
-    #hideBtn {
-      background: #333;
-    }
-
-    .hidden {
+    #status {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      top: 10px;
+      z-index: 9999;
+      background: rgba(0,0,0,0.72);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #fff;
+      pointer-events: none;
       display: none;
     }
 
-    .soraText {
-      position: absolute;
-      left: 50%;
-      top: 30%;
-      transform: translateX(-50%);
-      font-size: 26px;
-      font-weight: 900;
-      color: #fff;
-      text-shadow:
-        0 3px 8px rgba(0,0,0,0.8),
-        0 0 16px rgba(90,190,255,0.9);
-      letter-spacing: 0.05em;
-      animation: textFloat 2s ease-in-out infinite;
+    #status strong {
+      color: #ffe066;
     }
 
-    @keyframes textFloat {
-      0%, 100% {
-        transform: translateX(-50%) translateY(0);
-      }
-      50% {
-        transform: translateX(-50%) translateY(-10px);
-      }
+    #markerHelp {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 9999;
+      background: rgba(255,255,255,0.92);
+      color: #111;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      text-align: center;
+      display: none;
+    }
+
+    #markerHelp strong {
+      color: #0066cc;
+    }
+
+    #arRoot {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 
 <body>
-  <video id="camera" autoplay playsinline muted></video>
+  <div id="startScreen">
+    <div class="startCard">
+      <h1>Sora 本物AR</h1>
+      <p class="lead">
+        カメラを起動して、Hiroマーカーを映すと<br>
+        マーカーの上に宝箱と星が出ます。
+      </p>
 
-  <div id="arLayer" class="hidden">
-    <div class="soraText">SORA AR</div>
-    <div class="star" id="star"></div>
-    <div class="portal"></div>
-  </div>
+      <button id="startBtn">ARを開始する</button>
 
-  <div id="panel">
-    <div id="status">
-      カメラを起動すると、画面にAR風の星が出ます。
-    </div>
-
-    <div class="buttons">
-      <button id="startBtn">カメラ起動</button>
-      <button id="changeBtn">星の位置変更</button>
-      <button id="captureBtn">光る</button>
-      <button id="hideBtn">表示切替</button>
+      <div class="note">
+        ※ 別のスマホ・PC・紙に Hiroマーカーを表示して、<br>
+        このスマホのカメラで映してください。<br>
+        検索ワード：AR.js Hiro marker
+      </div>
     </div>
   </div>
+
+  <div id="status">
+    <strong>AR準備中...</strong><br>
+    カメラ許可が出たら「許可」を押してください。
+  </div>
+
+  <div id="markerHelp">
+    <strong>Hiroマーカー</strong>をカメラに映してください。<br>
+    認識すると宝箱・星・文字がマーカーの上に出ます。
+  </div>
+
+  <div id="arRoot"></div>
 
   <script>
-    const video = document.getElementById("camera");
-    const statusBox = document.getElementById("status");
     const startBtn = document.getElementById("startBtn");
-    const changeBtn = document.getElementById("changeBtn");
-    const captureBtn = document.getElementById("captureBtn");
-    const hideBtn = document.getElementById("hideBtn");
-    const arLayer = document.getElementById("arLayer");
-    const star = document.getElementById("star");
+    const startScreen = document.getElementById("startScreen");
+    const statusBox = document.getElementById("status");
+    const markerHelp = document.getElementById("markerHelp");
+    const arRoot = document.getElementById("arRoot");
 
-    let arVisible = true;
-    let started = false;
+    let arStarted = false;
 
-    async function startCamera() {
-      if (started) return;
-
-      statusBox.innerHTML = "カメラ起動中...";
-
-      try {
-        let stream;
-
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: { ideal: "environment" }
-            },
-            audio: false
-          });
-        } catch (e) {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-          });
-        }
-
-        video.srcObject = stream;
-
-        video.onloadedmetadata = () => {
-          video.play();
-          arLayer.classList.remove("hidden");
-          statusBox.innerHTML = "成功！カメラ画面にAR風の星が表示されています。";
-          started = true;
-        };
-      } catch (error) {
-        statusBox.innerHTML =
-          "カメラ起動失敗<br>" +
-          error.name + "<br>" +
-          error.message;
-      }
+    function setStatus(html) {
+      statusBox.innerHTML = html;
+      statusBox.style.display = "block";
     }
 
-    function moveStarRandomly() {
-      if (!started) {
-        statusBox.innerHTML = "先にカメラを起動してください。";
-        return;
-      }
+    function startAR() {
+      if (arStarted) return;
+      arStarted = true;
 
-      const x = 20 + Math.random() * 60;
-      const y = 25 + Math.random() * 45;
+      startScreen.classList.add("hidden");
+      markerHelp.style.display = "block";
 
-      star.style.left = x + "%";
-      star.style.top = y + "%";
+      setStatus(
+        "<strong>AR起動中...</strong><br>" +
+        "カメラ許可が出たら許可してください。<br>" +
+        "映像が出たらHiroマーカーに向けてください。"
+      );
 
-      statusBox.innerHTML = "星の位置を変えました。";
-    }
+      arRoot.innerHTML = `
+        <a-scene
+          embedded
+          vr-mode-ui="enabled: false"
+          renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
+          arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
+        >
+          <a-marker
+            id="hiroMarker"
+            preset="hiro"
+            emitevents="true"
+            smooth="true"
+            smooth-count="10"
+            smooth-tolerance="0.01"
+            smooth-threshold="5"
+          >
 
-    function glowEffect() {
-      if (!started) {
-        statusBox.innerHTML = "先にカメラを起動してください。";
-        return;
-      }
+            <!-- 地面の光る円 -->
+            <a-torus
+              position="0 0.03 0"
+              rotation="90 0 0"
+              radius="0.72"
+              radius-tubular="0.035"
+              color="#4dd8ff"
+              animation="property: rotation; to: 90 0 360; loop: true; dur: 2600; easing: linear;"
+            ></a-torus>
 
-      star.style.filter = "drop-shadow(0 0 40px rgba(255,255,120,1)) drop-shadow(0 0 70px rgba(80,200,255,0.9))";
-      statusBox.innerHTML = "星が強く光りました！";
+            <!-- 宝箱っぽい土台 -->
+            <a-box
+              position="0 0.22 0"
+              scale="0.9 0.36 0.55"
+              color="#8B4513"
+            ></a-box>
+
+            <!-- 宝箱のふた -->
+            <a-box
+              position="0 0.48 0"
+              scale="0.95 0.22 0.6"
+              color="#B06A2B"
+              animation="property: rotation; from: 0 0 0; to: -18 0 0; dir: alternate; loop: true; dur: 900; easing: easeInOutSine;"
+            ></a-box>
+
+            <!-- 金色ライン -->
+            <a-box
+              position="0 0.55 -0.31"
+              scale="1.02 0.08 0.04"
+              color="#FFD75A"
+            ></a-box>
+
+            <a-box
+              position="0 0.24 -0.31"
+              scale="1.02 0.07 0.04"
+              color="#FFD75A"
+            ></a-box>
+
+            <!-- 鍵穴 -->
+            <a-box
+              position="0 0.36 -0.34"
+              scale="0.13 0.18 0.04"
+              color="#222"
+            ></a-box>
+
+            <!-- 浮かぶ星 -->
+            <a-sphere
+              position="0 1.12 0"
+              radius="0.18"
+              color="#fff176"
+              animation="property: position; from: 0 1.02 0; to: 0 1.34 0; dir: alternate; loop: true; dur: 850; easing: easeInOutSine;"
+            ></a-sphere>
+
+            <a-ring
+              position="0 1.12 0"
+              rotation="90 0 0"
+              radius-inner="0.22"
+              radius-outer="0.27"
+              color="#ffffff"
+              animation="property: rotation; to: 90 0 360; loop: true; dur: 1600; easing: linear;"
+            ></a-ring>
+
+            <!-- 文字 -->
+            <a-text
+              value="SORA TREASURE"
+              position="0 0.05 -0.9"
+              rotation="-90 0 0"
+              align="center"
+              width="3.2"
+              color="#ffffff"
+            ></a-text>
+
+          </a-marker>
+
+          <a-entity camera></a-entity>
+        </a-scene>
+      `;
 
       setTimeout(() => {
-        star.style.filter = "drop-shadow(0 0 18px rgba(255, 230, 80, 0.9))";
-      }, 800);
+        const marker = document.getElementById("hiroMarker");
+
+        if (marker) {
+          marker.addEventListener("markerFound", () => {
+            setStatus(
+              "<strong>マーカー発見！</strong><br>" +
+              "宝箱が出ていれば成功です。"
+            );
+            markerHelp.style.display = "none";
+          });
+
+          marker.addEventListener("markerLost", () => {
+            setStatus(
+              "<strong>マーカーを見失いました</strong><br>" +
+              "もう一度Hiroマーカーを正面から映してください。"
+            );
+            markerHelp.style.display = "block";
+          });
+        }
+      }, 1000);
     }
 
-    function toggleAR() {
-      if (!started) {
-        statusBox.innerHTML = "先にカメラを起動してください。";
-        return;
-      }
+    startBtn.addEventListener("click", startAR);
 
-      arVisible = !arVisible;
-      arLayer.style.display = arVisible ? "block" : "none";
-      statusBox.innerHTML = arVisible ? "AR表示オン" : "AR表示オフ";
-    }
-
-    startBtn.addEventListener("click", startCamera);
     startBtn.addEventListener("touchstart", function(e) {
       e.preventDefault();
-      startCamera();
-    }, { passive: false });
-
-    changeBtn.addEventListener("click", moveStarRandomly);
-    changeBtn.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      moveStarRandomly();
-    }, { passive: false });
-
-    captureBtn.addEventListener("click", glowEffect);
-    captureBtn.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      glowEffect();
-    }, { passive: false });
-
-    hideBtn.addEventListener("click", toggleAR);
-    hideBtn.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      toggleAR();
+      startAR();
     }, { passive: false });
   </script>
 </body>
